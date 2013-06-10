@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: Robotics Systems Bus - Spread connectors
+Description: Fully event-driven Robotics Systems Bus - Spread connectors
+Version: @RSBSPREAD_VERSION@
+Requires: rsc@VERSION_SUFFIX@, rsb@VERSION_SUFFIX@
+Libs: -L${libdir}/rsb@VERSION_SUFFIX@/plugins -l@RSBSPREAD_NAME@@VERSION_SUFFIX@
+Cflags: -I${includedir}
