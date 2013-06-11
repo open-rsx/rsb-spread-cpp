@@ -2,7 +2,7 @@
  *
  * This file is part of the rsb-spread project
  *
- * Copyright (C) 2010 Sebastian Wrede <swrede@techfak.uni-bielefeld.de>
+ * Copyright (C) 2010 Johannes Wienke <jwienke@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -24,40 +24,24 @@
  *
  * ============================================================ */
 
-#include <iostream>
-
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include <rsb/transport/spread/MembershipManager.h>
+#include <rsb/converter/converters.h>
 
-#include "testconfig.h"
+#include "testhelpers.h"
 
 using namespace std;
 
-using namespace rsb::transport::spread;
-
 using namespace testing;
 
-TEST(MembershipManagerTest, testRoundtrip)
-{
-    MembershipManagerPtr mm(new MembershipManager());
-    // TODO convert this to a mock-only test case
-    SpreadConnectionPtr sp(
-            new SpreadConnection("blub", defaultHost(), SPREAD_PORT));
-    sp->activate();
+int main(int argc, char* argv[]) {
+    srand(time(NULL));
 
-    ASSERT_NO_THROW(mm->join("a",sp));
-    mm->join("a",sp);
-    // join a different group
-    mm->join("b",sp);
-    // leave it
-    mm->leave("b",sp);
-    // leave a
-    mm->leave("a",sp);
-    mm->leave("a",sp);
-    // re-join a previously left group
-    mm->join("b",sp);
-    // left b as well
-    ASSERT_NO_THROW(mm->leave("b",sp));
+    AddGlobalTestEnvironment(new SpreadEnvironment);
+
+    rsb::converter::registerDefaultConverters();
+
+    InitGoogleMock(&argc, argv);
+
+    return RUN_ALL_TESTS();
 }

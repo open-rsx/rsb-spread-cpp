@@ -1,8 +1,8 @@
 /* ============================================================
  *
- * This file is a part of the RSB project
+ * This file is part of the rsb-spread project
  *
- * Copyright (C) 2011 by Johannes Wienke <jwienke at techfak dot uni-bielefeld dot de>
+ * Copyright (C) 2011 Johannes Wienke <jwienke@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -33,11 +33,13 @@
 #include <rsc/misc/langutils.h>
 #include <rsc/misc/UUID.h>
 
-#include "rsb/transport/spread/SpreadMessage.h"
+#include <rsb/transport/spread/SpreadMessage.h>
 
 using namespace std;
+
 using namespace rsb;
 using namespace rsb::transport::spread;
+
 using namespace testing;
 
 TEST(SpreadMessageTest, testConstruction)

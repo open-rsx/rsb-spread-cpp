@@ -1,9 +1,9 @@
 /* ============================================================
  *
- * This file is a part of the RSB project
+ * This file is part of the rsb-spread project
  *
- * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2012 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2010 Sebastian Wrede <swrede@techfak.uni-bielefeld.de>
+ * Copyright (C) 2012, 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -30,12 +30,13 @@
 
 #include "rsb/converter/Repository.h"
 
-#include "rsb/transport/spread/InPullConnector.h"
-#include "rsb/transport/spread/InPushConnector.h"
-#include "rsb/transport/spread/OutConnector.h"
+#include <rsb/transport/spread/InPullConnector.h>
+#include <rsb/transport/spread/InPushConnector.h>
+#include <rsb/transport/spread/OutConnector.h>
+
+#include "../ConnectorTest.h"
 
 #include "testconfig.h"
-#include "../ConnectorTest.h"
 
 using namespace std;
 

@@ -36,7 +36,11 @@ set(SO_VERSION     "${VERSION_MAJOR}.${VERSION_MINOR}")
 
 set(RSBSPREAD_NAME rsbspread) # stem of shared object name
 
-set(SPREADCONNECTOR_TEST_NAME rsbtest_spread)
+set(TEST_NAME rsbspread-test)
+
+# Configuration options
+
+option(BUILD_TESTS "Build tests?" ON)
 
 # Dependencies
 
@@ -77,7 +81,7 @@ if(NOT SPREAD_EXECUTABLE)
     message(STATUS "Spread executable not found. Unit tests will not be built!")
 endif()
 
-# Compilation Settings
+# Compilation settings
 
 add_definitions(${RSB_PROTOCOL_CFLAGS})
 
@@ -91,6 +95,18 @@ set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib:\$ORIGIN/")
 # Sub-directories
 
 add_subdirectory(src)
+
+# Tests
+
+enable_testing()
+if(BUILD_TESTS)
+    include(ProvideGoogleMock)
+    if(GMOCK_AVAILABLE)
+        add_subdirectory(test)
+    else()
+        message(WARNING "Could not build unit tests (as requested) because Google Mock could not be installed.")
+    endif()
+endif()
 
 # pkgconfig file
 
