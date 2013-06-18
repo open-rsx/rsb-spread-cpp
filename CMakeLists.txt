@@ -76,7 +76,7 @@ set(INSTALL_PATH_PREFIX "${RSBSPREAD_NAME}${VERSION_SUFFIX}"
 
 # Spread
 
-find_package(Spread 4.0)
+find_package(Spread 4.0 REQUIRED)
 if(NOT SPREAD_EXECUTABLE)
     message(STATUS "Spread executable not found. Unit tests will not be built!")
 endif()
