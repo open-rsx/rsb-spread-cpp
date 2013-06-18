@@ -81,12 +81,18 @@ if(NOT SPREAD_EXECUTABLE)
     message(STATUS "Spread executable not found. Unit tests will not be built!")
 endif()
 
+# Protobuf
+# This is required because we are now reusing the protobuf-generated protocol
+
+find_package(ProtocolBuffers REQUIRED)
+
 # Compilation settings
 
 add_definitions(${RSB_PROTOCOL_CFLAGS})
 
 include_directories(BEFORE SYSTEM ${RSB_INCLUDE_DIRS}
-                                  ${RSC_INCLUDE_DIRS})
+                                  ${RSC_INCLUDE_DIRS}
+                                  ${PROTOBUF_INCLUDE_DIRS})
 link_directories(${RSC_LIBRARY_DIRS}
                  ${RSB_LIBRARY_DIRS})
 
