@@ -20,7 +20,12 @@
 #   CoR-Lab, Research Institute for Cognition and Robotics
 #     Bielefeld University
 
-include_directories(BEFORE SYSTEM ${RSC_INCLUDE_DIRS}
+configure_file(rsb/transport/spread/rsbspreadexports.h.in
+               "${CMAKE_CURRENT_BINARY_DIR}/rsb/transport/spread/rsbspreadexports.h"
+               @ONLY)
+
+include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_BINARY_DIR}
+                                  ${RSC_INCLUDE_DIRS}
                                   ${RSB_INCLUDE_DIRS}
                                   ${Boost_INCLUDE_DIRS}
                                   ${PROTOBUF_INCLUDE_DIRS}
@@ -58,7 +63,9 @@ set(HEADERS rsb/transport/spread/SpreadMessage.h
             rsb/transport/spread/InPullConnector.h
             rsb/transport/spread/OutConnector.h
 
-            rsb/transport/spread/registration.h)
+            rsb/transport/spread/registration.h
+            
+            ${CMAKE_CURRENT_BINARY_DIR}/rsb/transport/spread/rsbspreadexports.h)
 
 add_library(${RSBSPREAD_NAME} SHARED ${SOURCES} ${HEADERS})
 target_link_libraries(${RSBSPREAD_NAME} ${RSC_LIBRARIES}

@@ -35,7 +35,7 @@
 
 #include "SpreadMessage.h"
 
-#include "rsb/rsbexports.h"
+#include "rsb/transport/spread/rsbspreadexports.h"
 
 // forward declaration to avoid exposing sp.h with strange defines that prevent
 // other code from compiling
@@ -45,9 +45,9 @@ namespace rsb {
 namespace transport {
 namespace spread {
 
-RSB_EXPORT std::string defaultHost();
+RSBSPREAD_EXPORT std::string defaultHost();
 
-RSB_EXPORT unsigned int defaultPort();
+RSBSPREAD_EXPORT unsigned int defaultPort();
 
 /**
  * A wrapper class providing an object-oriented interface to the Spread API.
@@ -59,7 +59,7 @@ RSB_EXPORT unsigned int defaultPort();
  * @author swrede
  * @author jwienke
  */
-class RSB_EXPORT SpreadConnection {
+class RSBSPREAD_EXPORT SpreadConnection {
 public:
     SpreadConnection(const std::string& prefix,
                      const std::string& host   = defaultHost(),

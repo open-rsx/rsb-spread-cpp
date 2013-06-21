@@ -38,7 +38,7 @@
 #include "SpreadMessage.h"
 #include "Assembly.h"
 
-#include "rsb/rsbexports.h"
+#include "rsb/transport/spread/rsbspreadexports.h"
 
 namespace rsb {
 namespace transport {
@@ -49,7 +49,7 @@ namespace spread {
  *
  * @author jmoringe
  */
-class RSB_EXPORT MessageHandler : public transport::ConverterSelectingConnector<std::string> {
+class RSBSPREAD_EXPORT MessageHandler : public transport::ConverterSelectingConnector<std::string> {
 public:
     MessageHandler(ConverterSelectionStrategyPtr converters);
     virtual ~MessageHandler();

@@ -44,7 +44,8 @@ configure_file(testconfig.h.in
 
 # Compilation settings for test code
 
-include_directories(BEFORE ${CMAKE_SOURCE_DIR}/src
+include_directories(BEFORE "${CMAKE_SOURCE_DIR}/src"
+                           "${CMAKE_CURRENT_BINARY_DIR}/../src"
                            ${GMOCK_INCLUDE_DIRS}
                            ${CMAKE_CURRENT_SOURCE_DIR}  # test support files
                            ${CMAKE_CURRENT_BINARY_DIR}) # generated files

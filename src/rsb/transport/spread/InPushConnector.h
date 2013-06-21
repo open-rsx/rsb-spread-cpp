@@ -38,7 +38,7 @@
 #include "SpreadConnector.h"
 #include "ReceiverTask.h"
 
-#include "rsb/rsbexports.h"
+#include "rsb/transport/spread/rsbspreadexports.h"
 
 namespace rsb {
 namespace transport {
@@ -52,7 +52,7 @@ class ReceiverTask;
  *
  * @author jmoringe
  */
-class RSB_EXPORT InPushConnector: public transport::InPushConnector,
+class RSBSPREAD_EXPORT InPushConnector: public transport::InPushConnector,
                                   public transport::ConverterSelectingConnector<std::string> {
     friend class ReceiverTask;
 public:
