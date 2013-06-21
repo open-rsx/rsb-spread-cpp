@@ -70,7 +70,8 @@ set(HEADERS rsb/transport/spread/SpreadMessage.h
 add_library(${RSBSPREAD_NAME} SHARED ${SOURCES} ${HEADERS})
 target_link_libraries(${RSBSPREAD_NAME} ${RSC_LIBRARIES}
                                         ${RSB_LIBRARIES}
-                                        ${SPREAD_LIBRARIES})
+                                        ${SPREAD_LIBRARIES}
+                                        ${Boost_LIBRARIES})
 
 set_target_properties(${RSBSPREAD_NAME}
                       PROPERTIES

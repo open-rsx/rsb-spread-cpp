@@ -57,7 +57,10 @@ include(CurrentDate)
 include(PedanticCompilerWarnings)
 include(InstallFilesRecursive)
 
-find_package(Boost 1.38 REQUIRED COMPONENTS thread system)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_LIBS OFF)
+add_definitions(-DBOOST_ALL_DYN_LINK)
+find_package(Boost 1.38 REQUIRED regex date_time program_options system)
 if(NOT RSC_INTERNAL_BOOST_UUID)
     find_package(BoostUUID REQUIRED)
 endif()
@@ -92,7 +95,8 @@ add_definitions(${RSB_PROTOCOL_CFLAGS})
 
 include_directories(BEFORE SYSTEM ${RSB_INCLUDE_DIRS}
                                   ${RSC_INCLUDE_DIRS}
-                                  ${PROTOBUF_INCLUDE_DIRS})
+                                  ${PROTOBUF_INCLUDE_DIRS}
+                                  ${Boost_INCLUDE_DIRS})
 link_directories(${RSC_LIBRARY_DIRS}
                  ${RSB_LIBRARY_DIRS})
 
