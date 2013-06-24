@@ -41,7 +41,7 @@
 #include <rsb/protocol/Notification.h>
 #include <rsb/protocol/FragmentedNotification.h>
 
-#include "rsb/rsbexports.h"
+#include "rsb/transport/spread/rsbspreadexports.h"
 
 namespace rsb {
 namespace transport {
@@ -53,7 +53,7 @@ namespace spread {
  *
  * @author swrede
  */
-class RSB_EXPORT Assembly {
+class RSBSPREAD_EXPORT Assembly {
 public:
 
     Assembly(rsb::protocol::FragmentedNotificationPtr n);
@@ -104,7 +104,7 @@ typedef boost::shared_ptr<Assembly> AssemblyPtr;
  *
  * @author jmoringe
  */
-class RSB_EXPORT AssemblyPool {
+class RSBSPREAD_EXPORT AssemblyPool {
 public:
 
     /**

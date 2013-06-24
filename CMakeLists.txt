@@ -38,6 +38,11 @@ set(RSBSPREAD_NAME rsbspread) # stem of shared object name
 
 set(TEST_NAME rsbspread-test)
 
+set(OUTPUT_PATH            "${CMAKE_BINARY_DIR}/build")
+set(ARCHIVE_OUTPUT_PATH    ${OUTPUT_PATH})
+set(LIBRARY_OUTPUT_PATH    ${OUTPUT_PATH})
+set(EXECUTABLE_OUTPUT_PATH ${OUTPUT_PATH})
+
 # Configuration options
 
 option(BUILD_TESTS "Build tests?" ON)
@@ -57,7 +62,10 @@ include(CurrentDate)
 include(PedanticCompilerWarnings)
 include(InstallFilesRecursive)
 
-find_package(Boost 1.38 REQUIRED COMPONENTS thread system)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_LIBS OFF)
+add_definitions(-DBOOST_ALL_DYN_LINK)
+find_package(Boost 1.38 REQUIRED regex date_time program_options system)
 if(NOT RSC_INTERNAL_BOOST_UUID)
     find_package(BoostUUID REQUIRED)
 endif()
@@ -81,12 +89,19 @@ if(NOT SPREAD_EXECUTABLE)
     message(STATUS "Spread executable not found. Unit tests will not be built!")
 endif()
 
+# Protobuf
+# This is required because we are now reusing the protobuf-generated protocol
+
+find_package(ProtocolBuffers REQUIRED)
+
 # Compilation settings
 
 add_definitions(${RSB_PROTOCOL_CFLAGS})
 
 include_directories(BEFORE SYSTEM ${RSB_INCLUDE_DIRS}
-                                  ${RSC_INCLUDE_DIRS})
+                                  ${RSC_INCLUDE_DIRS}
+                                  ${PROTOBUF_INCLUDE_DIRS}
+                                  ${Boost_INCLUDE_DIRS})
 link_directories(${RSC_LIBRARY_DIRS}
                  ${RSB_LIBRARY_DIRS})
 

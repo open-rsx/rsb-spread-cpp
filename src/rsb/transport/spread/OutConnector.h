@@ -36,7 +36,7 @@
 
 #include "SpreadConnector.h"
 
-#include "rsb/rsbexports.h"
+#include "rsb/transport/spread/rsbspreadexports.h"
 
 namespace rsb {
 namespace transport {
@@ -45,7 +45,7 @@ namespace spread {
 /**
  * @author jmoringe
  */
-class RSB_EXPORT OutConnector: public transport::OutConnector,
+class RSBSPREAD_EXPORT OutConnector: public transport::OutConnector,
         public rsb::transport::ConverterSelectingConnector<std::string> {
 public:
     OutConnector(ConverterSelectionStrategyPtr converters,

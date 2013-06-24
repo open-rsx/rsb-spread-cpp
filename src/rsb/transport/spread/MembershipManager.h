@@ -37,7 +37,7 @@
 
 #include "SpreadConnection.h"
 
-#include "rsb/rsbexports.h"
+#include "rsb/transport/spread/rsbspreadexports.h"
 
 #pragma once
 
@@ -54,7 +54,7 @@ typedef std::map<std::string, std::pair<SpreadGroupPtr, int> > GroupMap;
  * @todo think about adding SpreadConnectionPtr as a member, offering
  *       methods that operate on this connection only
  */
-class RSB_EXPORT MembershipManager {
+class RSBSPREAD_EXPORT MembershipManager {
 public:
     MembershipManager();
     virtual ~MembershipManager();

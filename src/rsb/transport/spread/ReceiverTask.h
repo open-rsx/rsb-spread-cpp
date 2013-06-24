@@ -51,6 +51,8 @@
 #include "InPushConnector.h"
 #include "Assembly.h"
 
+#include "rsb/transport/spread/rsbspreadexports.h"
+
 namespace rsb {
 namespace transport {
 namespace spread {
@@ -72,7 +74,7 @@ class InPushConnector;
  * @author swrede
  * @author jwienke
  */
-class ReceiverTask: public rsc::threading::RepetitiveTask {
+class RSBSPREAD_EXPORT ReceiverTask: public rsc::threading::RepetitiveTask {
 public:
 
     ReceiverTask(SpreadConnectionPtr         s,

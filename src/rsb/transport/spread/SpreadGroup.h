@@ -34,6 +34,7 @@
 #include <rsc/logging/Logger.h>
 
 #include "SpreadConnection.h"
+#include "rsb/transport/spread/rsbspreadexports.h"
 
 namespace rsb {
 namespace transport {
@@ -42,7 +43,7 @@ namespace spread {
 /**
  * @author swrede
  */
-class SpreadGroup {
+class RSBSPREAD_EXPORT SpreadGroup {
 public:
     SpreadGroup(const std::string& n);
     virtual ~SpreadGroup();

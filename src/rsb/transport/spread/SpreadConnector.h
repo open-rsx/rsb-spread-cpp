@@ -43,7 +43,7 @@
 #include "MembershipManager.h"
 #include "SpreadConnection.h"
 
-#include "rsb/rsbexports.h"
+#include "rsb/transport/spread/rsbspreadexports.h"
 
 namespace rsb {
 namespace transport {
@@ -52,7 +52,7 @@ namespace spread {
 /**
  * @author swrede
  */
-class RSB_EXPORT SpreadConnector {
+class RSBSPREAD_EXPORT SpreadConnector {
 public:
     SpreadConnector(const std::string& host = defaultHost(),
             unsigned int port = defaultPort());
