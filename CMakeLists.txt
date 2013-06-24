@@ -38,6 +38,11 @@ set(RSBSPREAD_NAME rsbspread) # stem of shared object name
 
 set(TEST_NAME rsbspread-test)
 
+set(OUTPUT_PATH            "${CMAKE_BINARY_DIR}/build")
+set(ARCHIVE_OUTPUT_PATH    ${OUTPUT_PATH})
+set(LIBRARY_OUTPUT_PATH    ${OUTPUT_PATH})
+set(EXECUTABLE_OUTPUT_PATH ${OUTPUT_PATH})
+
 # Configuration options
 
 option(BUILD_TESTS "Build tests?" ON)

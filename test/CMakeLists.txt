@@ -74,6 +74,16 @@ if(SPREAD_EXECUTABLE)
     add_test(${TEST_NAME}
              ${EXECUTABLE_OUTPUT_PATH}/${TEST_NAME}
              "--gtest_output=xml:${TEST_RESULT_DIR}/")
+             
+    if(WIN32)
+        set(PATH_STRING "$ENV{PATH};${Boost_LIBRARY_DIRS};${RSC_RUNTIME_LIBRARY_DIRS};${RSB_RUNTIME_LIBRARY_DIRS}")
+        # requried for PATH entries with a slash before the semicolon
+        string(REPLACE "\\;" ";" PATH_STRING "${PATH_STRING}")
+        string(REPLACE ";" "\\;" PATH_STRING "${PATH_STRING}")
+        set_property(TEST ${TEST_NAME}
+                     PROPERTY ENVIRONMENT "PATH=${PATH_STRING}")
+    endif()
+    
 endif()
 
 # Spread symlink workaround
