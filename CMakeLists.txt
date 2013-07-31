@@ -105,7 +105,8 @@ include_directories(BEFORE SYSTEM ${RSB_INCLUDE_DIRS}
 link_directories(${RSC_LIBRARY_DIRS}
                  ${RSB_LIBRARY_DIRS})
 
-set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib:\$ORIGIN/")
+set(CMAKE_INSTALL_RPATH "\$ORIGIN/../..:\$ORIGIN/"
+    CACHE STRING "Default install RPATH.")
 
 # Sub-directories
 
