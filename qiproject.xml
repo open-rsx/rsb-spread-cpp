@@ -1,0 +1,4 @@
+<project name="rsb-spread-cpp">
+	<depends buildtime="true" names="rsb"/>
+	<depends buildtime="true" names="rsc"/>
+</project>
