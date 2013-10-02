@@ -50,6 +50,8 @@ include_directories(BEFORE "${CMAKE_SOURCE_DIR}/src"
                            ${CMAKE_CURRENT_SOURCE_DIR}  # test support files
                            ${CMAKE_CURRENT_BINARY_DIR}) # generated files
 
+add_definitions(${GMOCK_CFLAGS})
+
 # Spread connector test
 
 if(SPREAD_EXECUTABLE)
