@@ -109,9 +109,8 @@ void ReceiverTask::execute() {
     } catch (rsb::CommException& e) {
         // TODO QoS would not like swallowing the exception
         // TODO maybe at least use the ErrorHandlingStrategy here?
-        rsc::debug::DebugToolsPtr tools = rsc::debug::DebugTools::newInstance();
         RSCERROR(logger,
-                 "Error receiving spread message: " << e.what() << endl << tools->exceptionInfo(e));
+                 "Error receiving spread message: " << e.what() << endl << rsc::debug::exceptionInfo(e));
     } catch (boost::thread_interrupted& e) {
         return;
     }
