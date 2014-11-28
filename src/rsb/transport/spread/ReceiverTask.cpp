@@ -111,7 +111,8 @@ void ReceiverTask::execute() {
         // TODO maybe at least use the ErrorHandlingStrategy here?
         rsc::debug::DebugToolsPtr tools = rsc::debug::DebugTools::newInstance();
         RSCERROR(logger,
-                 "Error receiving spread message: " << e.what() << endl << tools->exceptionInfo(e));
+                 "Error receiving spread message: " << e.what() << endl << tools->exceptionInfo(e) << "\nTerminating receiving new spread messages!");
+        this->cancel();
     } catch (boost::thread_interrupted& e) {
         return;
     }
