@@ -73,6 +73,8 @@ public:
     void addHandler(eventprocessing::HandlerPtr handler);
     void removeHandler(eventprocessing::HandlerPtr handler);
 
+    void setErrorStrategy(ParticipantConfig::ErrorStrategy strategy);
+
     static transport::InPushConnector* create(const rsc::runtime::Properties& args);
 private:
     rsc::logging::LoggerPtr logger;

@@ -129,6 +129,10 @@ void InPushConnector::setScope(const Scope& scope) {
     }
 }
 
+void InPushConnector::setErrorStrategy(ParticipantConfig::ErrorStrategy strategy) {
+    this->rec->setErrorStrategy(strategy);
+}
+
 }
 }
 }
