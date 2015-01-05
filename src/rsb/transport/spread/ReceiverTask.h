@@ -94,6 +94,8 @@ public:
      */
     void setPruning(const bool& pruning);
 
+    void setErrorStrategy(ParticipantConfig::ErrorStrategy strategy);
+
 private:
 
     /**
@@ -125,6 +127,8 @@ private:
 
     eventprocessing::HandlerPtr handler;
     boost::recursive_mutex handlerMutex;
+
+    ParticipantConfig::ErrorStrategy errorStrategy;
 };
 
 }

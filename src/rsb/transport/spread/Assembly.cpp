@@ -2,7 +2,7 @@
  *
  * This file is part of the rsb-spread project.
  *
- * Copyright (C) 2011, 2012, 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2011, 2012, 2013, 2014 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -166,18 +166,12 @@ rsb::protocol::NotificationPtr AssemblyPool::add(
     boost::recursive_mutex::scoped_lock lock(this->poolMutex);
 
     string key = notification->notification().event_id().sender_id();
-    key.push_back(
-            notification->notification().event_id().sequence_number()
-                    & 0x000000ff);
-    key.push_back(
-            notification->notification().event_id().sequence_number()
-                    & 0x0000ff00);
-    key.push_back(
-            notification->notification().event_id().sequence_number()
-                    & 0x00ff0000);
-    key.push_back(
-            notification->notification().event_id().sequence_number()
-                    & 0xff000000);
+    boost::uint64_t sequenceNumber
+      = notification->notification().event_id().sequence_number();
+    key.push_back((sequenceNumber & 0x000000ff) >> 0);
+    key.push_back((sequenceNumber & 0x0000ff00) >> 8);
+    key.push_back((sequenceNumber & 0x00ff0000) >> 16);
+    key.push_back((sequenceNumber & 0xff000000) >> 24);
     Pool::iterator it = this->pool.find(key);
     NotificationPtr result;
     AssemblyPtr assembly;
