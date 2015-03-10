@@ -139,6 +139,9 @@ void SpreadConnection::deactivate() {
         throw rsc::misc::IllegalStateException("Connection with id " + conId
                 + " is not active.");
     }
+    // we can safely ignore errors here since there is no way to recover any
+    // of them
+    SP_disconnect(con);
 
     connected = false;
 
