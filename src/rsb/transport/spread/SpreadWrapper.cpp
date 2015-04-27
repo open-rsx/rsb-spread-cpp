@@ -25,7 +25,7 @@
  *
  * ============================================================ */
 
-#include "SpreadConnector.h"
+#include "SpreadWrapper.h"
 
 #include <string.h>
 #include <math.h>
@@ -56,23 +56,23 @@ namespace rsb {
 namespace transport {
 namespace spread {
 
-const SpreadConnector::QoSMap SpreadConnector::qosMapping =
-        SpreadConnector::buildQoSMapping();
+const SpreadWrapper::QoSMap SpreadWrapper::qosMapping =
+        SpreadWrapper::buildQoSMapping();
 
-SpreadConnector::SpreadConnector(SpreadConnectionPtr connection) :
-        logger(Logger::getLogger("rsb.transport.spread.SpreadConnector")), activated(
+SpreadWrapper::SpreadWrapper(SpreadConnectionPtr connection) :
+        logger(Logger::getLogger("rsb.transport.spread.SpreadWrapper")), activated(
                 false), con(connection), memberships(MembershipManagerPtr(new MembershipManager())) {
     setQualityOfServiceSpecs(QualityOfServiceSpec());
     RSCDEBUG(logger, "New instance created");
 }
 
-void SpreadConnector::activate() {
+void SpreadWrapper::activate() {
     // connect to spread
     this->con->activate();
     this->activated = true;
 }
 
-void SpreadConnector::deactivate() {
+void SpreadWrapper::deactivate() {
     RSCDEBUG(logger, "deactivate() entered");
     if (this->con->isActive()) {
         this->con->deactivate();
@@ -82,37 +82,37 @@ void SpreadConnector::deactivate() {
     this->activated = false;
 }
 
-void SpreadConnector::join(const string& name) {
+void SpreadWrapper::join(const string& name) {
     this->memberships->join(name, this->con);
 }
 
-void SpreadConnector::leave(const string& name) {
+void SpreadWrapper::leave(const string& name) {
     this->memberships->leave(name, this->con);
 }
 
-void SpreadConnector::send(const SpreadMessage& msg) {
+void SpreadWrapper::send(const SpreadMessage& msg) {
     this->con->send(msg);
 }
 
-void SpreadConnector::receive(SpreadMessagePtr msg) {
+void SpreadWrapper::receive(SpreadMessagePtr msg) {
     this->con->receive(msg);
 }
 
-SpreadConnector::~SpreadConnector() {
+SpreadWrapper::~SpreadWrapper() {
     if (this->activated) {
         deactivate();
     }
 }
 
-SpreadConnectionPtr SpreadConnector::getConnection() {
+SpreadConnectionPtr SpreadWrapper::getConnection() {
     return this->con;
 }
 
-SpreadMessage::QOS SpreadConnector::getMessageQoS() const {
+SpreadMessage::QOS SpreadWrapper::getMessageQoS() const {
     return this->messageQoS;
 }
 
-SpreadConnector::QoSMap SpreadConnector::buildQoSMapping() {
+SpreadWrapper::QoSMap SpreadWrapper::buildQoSMapping() {
     map<QualityOfServiceSpec::Reliability, SpreadMessage::QOS> unorderedMap;
     unorderedMap.insert(
             make_pair(QualityOfServiceSpec::UNRELIABLE,
@@ -134,7 +134,7 @@ SpreadConnector::QoSMap SpreadConnector::buildQoSMapping() {
     return table;
 }
 
-void SpreadConnector::setQualityOfServiceSpecs(
+void SpreadWrapper::setQualityOfServiceSpecs(
         const QualityOfServiceSpec& specs) {
 
     QoSMap::const_iterator orderMapIt = qosMapping.find(specs.getOrdering());
@@ -152,7 +152,7 @@ void SpreadConnector::setQualityOfServiceSpecs(
     RSCDEBUG(logger, "Selected new message type " << messageQoS);
 }
 
-const vector<string>& SpreadConnector::makeGroupNames(
+const vector<string>& SpreadWrapper::makeGroupNames(
         const Scope& scope) const {
 
     boost::upgrade_lock<boost::shared_mutex> lock(groupNameCacheMutex);
@@ -185,7 +185,7 @@ const vector<string>& SpreadConnector::makeGroupNames(
 
 }
 
-std::string SpreadConnector::makeGroupName(const Scope& scope) const {
+std::string SpreadWrapper::makeGroupName(const Scope& scope) const {
     return MD5(scope.toString()).toHexString().substr(0, MAX_GROUP_NAME - 1);
 }
 

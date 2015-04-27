@@ -34,9 +34,8 @@
 #include <rsb/transport/OutConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
-#include "SpreadConnector.h"
-
 #include "rsb/transport/spread/rsbspreadexports.h"
+#include "SpreadWrapper.h"
 
 namespace rsb {
 namespace transport {
@@ -68,7 +67,7 @@ private:
 
     rsc::logging::LoggerPtr logger;
     bool active;
-    SpreadConnectorPtr connector;
+    SpreadWrapperPtr connector;
     unsigned int maxFragmentSize;
     /**
      * The number of bytes minimally required to successfully serialize the

@@ -44,7 +44,7 @@ InPullConnector::InPullConnector(ConverterSelectionStrategyPtr converters,
         SpreadConnectionPtr connection) :
     logger(Logger::getLogger("rsb.transport.spread.InPullConnector")),
     active(false),
-    connector(new SpreadConnector(connection)),
+    connector(new SpreadWrapper(connection)),
     processor(converters) {
 }
 

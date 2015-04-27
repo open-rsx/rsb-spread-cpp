@@ -26,6 +26,8 @@
 
 #include "Factory.h"
 
+#include <rsb/converter/ConverterSelectionStrategy.h>
+
 #include "InPushConnector.h"
 #include "InPullConnector.h"
 #include "OutConnector.h"

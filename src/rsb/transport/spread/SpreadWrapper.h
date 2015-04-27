@@ -52,11 +52,11 @@ namespace spread {
 /**
  * @author swrede
  */
-class RSBSPREAD_EXPORT SpreadConnector {
+class RSBSPREAD_EXPORT SpreadWrapper {
 public:
-    SpreadConnector(SpreadConnectionPtr connection);
+    SpreadWrapper(SpreadConnectionPtr connection);
 
-    virtual ~SpreadConnector();
+    virtual ~SpreadWrapper();
 
     void activate();
     void deactivate();
@@ -110,7 +110,7 @@ private:
 
 };
 
-typedef boost::shared_ptr<SpreadConnector> SpreadConnectorPtr;
+typedef boost::shared_ptr<SpreadWrapper> SpreadWrapperPtr;
 
 typedef rsb::transport::ConverterSelectingConnector<std::string>::ConverterSelectionStrategyPtr ConverterSelectionStrategyPtr;
 

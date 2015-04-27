@@ -35,10 +35,10 @@
 #include <rsb/transport/InPushConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
-#include "SpreadConnector.h"
 #include "ReceiverTask.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
+#include "SpreadWrapper.h"
 
 namespace rsb {
 namespace transport {
@@ -79,7 +79,7 @@ private:
 
     bool active;
 
-    SpreadConnectorPtr connector;
+    SpreadWrapperPtr connector;
     boost::shared_ptr<Scope> activationScope;
 
     rsc::threading::TaskExecutorPtr exec;

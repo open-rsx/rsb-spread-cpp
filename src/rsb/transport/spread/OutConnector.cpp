@@ -52,7 +52,7 @@ OutConnector::OutConnector(ConverterSelectionStrategyPtr converters,
         SpreadConnectionPtr connection, unsigned int maxFragmentSize) :
         transport::ConverterSelectingConnector<string>(converters), logger(
                 Logger::getLogger("rsb.transport.spread.OutConnector")), active(
-                false), connector(new SpreadConnector(connection)), maxFragmentSize(
+                false), connector(new SpreadWrapper(connection)), maxFragmentSize(
                 maxFragmentSize), minDataSpace(5) {
 }
 

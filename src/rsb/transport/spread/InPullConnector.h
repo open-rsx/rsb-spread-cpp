@@ -33,10 +33,10 @@
 #include <rsb/transport/InPullConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
-#include "SpreadConnector.h"
 #include "MessageHandler.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
+#include "SpreadWrapper.h"
 
 namespace rsb {
 namespace transport {
@@ -70,7 +70,7 @@ private:
 
     bool active;
 
-    SpreadConnectorPtr connector;
+    SpreadWrapperPtr connector;
     boost::shared_ptr<Scope> activationScope;
     MessageHandler processor;
 };

@@ -48,7 +48,7 @@ InPushConnector::InPushConnector(const ConverterSelectionStrategyPtr converters,
         SpreadConnectionPtr connection) :
     transport::ConverterSelectingConnector<string>(converters), logger(
             Logger::getLogger("rsb.transport.spread.InPushConnector")), active(false),
-            connector(new SpreadConnector(connection)) {
+            connector(new SpreadWrapper(connection)) {
     this->exec = TaskExecutorPtr(new ThreadedTaskExecutor);
     this->rec = boost::shared_ptr<ReceiverTask>(new ReceiverTask(
             this->connector->getConnection(), HandlerPtr(), this));

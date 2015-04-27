@@ -36,13 +36,13 @@ set(SOURCES rsb/Plugin.cpp
             rsb/transport/spread/SpreadMessage.cpp
             rsb/transport/spread/SpreadGroup.cpp
             rsb/transport/spread/SpreadConnection.cpp
+            rsb/transport/spread/SpreadWrapper.cpp
 
             rsb/transport/spread/MembershipManager.cpp
             rsb/transport/spread/Assembly.cpp
             rsb/transport/spread/MessageHandler.cpp
             rsb/transport/spread/ReceiverTask.cpp
 
-            rsb/transport/spread/SpreadConnector.cpp
             rsb/transport/spread/InPushConnector.cpp
             rsb/transport/spread/InPullConnector.cpp
             rsb/transport/spread/OutConnector.cpp
@@ -53,13 +53,13 @@ set(SOURCES rsb/Plugin.cpp
 set(HEADERS rsb/transport/spread/SpreadMessage.h
             rsb/transport/spread/SpreadGroup.h
             rsb/transport/spread/SpreadConnection.h
+            rsb/transport/spread/SpreadWrapper.h
 
             rsb/transport/spread/MembershipManager.h
             rsb/transport/spread/Assembly.h
             rsb/transport/spread/MessageHandler.h
             rsb/transport/spread/ReceiverTask.h
 
-            rsb/transport/spread/SpreadConnector.h
             rsb/transport/spread/InPushConnector.h
             rsb/transport/spread/InPullConnector.h
             rsb/transport/spread/OutConnector.h
