@@ -39,6 +39,7 @@
 #include <rsb/QualityOfServiceSpec.h>
 
 #include <rsb/transport/Connector.h>
+#include <rsb/transport/ConverterSelectingConnector.h>
 
 #include "MembershipManager.h"
 #include "SpreadConnection.h"
@@ -116,6 +117,8 @@ private:
 };
 
 typedef boost::shared_ptr<SpreadConnector> SpreadConnectorPtr;
+
+typedef rsb::transport::ConverterSelectingConnector<std::string>::ConverterSelectionStrategyPtr ConverterSelectionStrategyPtr;
 
 }
 }

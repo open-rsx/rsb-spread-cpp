@@ -1,6 +1,6 @@
 # This file is part of the rsb-spread project.
 #
-# Copyright (C) 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+# Copyright (C) 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 #
 # This file may be licensed under the terms of the
 # GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -47,6 +47,7 @@ set(SOURCES rsb/Plugin.cpp
             rsb/transport/spread/InPullConnector.cpp
             rsb/transport/spread/OutConnector.cpp
 
+            rsb/transport/spread/Factory.cpp
             rsb/transport/spread/registration.cpp)
 
 set(HEADERS rsb/transport/spread/SpreadMessage.h
@@ -63,8 +64,9 @@ set(HEADERS rsb/transport/spread/SpreadMessage.h
             rsb/transport/spread/InPullConnector.h
             rsb/transport/spread/OutConnector.h
 
+            rsb/transport/spread/Factory.h
             rsb/transport/spread/registration.h
-            
+
             ${CMAKE_CURRENT_BINARY_DIR}/rsb/transport/spread/rsbspreadexports.h)
 
 add_library(${RSBSPREAD_NAME} SHARED ${SOURCES} ${HEADERS})

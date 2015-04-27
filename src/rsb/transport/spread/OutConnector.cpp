@@ -48,17 +48,6 @@ namespace rsb {
 namespace transport {
 namespace spread {
 
-transport::OutConnector* OutConnector::create(const Properties& args) {
-    static LoggerPtr logger = Logger::getLogger("rsb.transport.spread.OutConnector");
-    RSCDEBUG(logger, "creating OutConnector with properties " << args);
-
-    return new OutConnector(
-            args.get<ConverterSelectionStrategyPtr>("converters"),
-            args.get<string>("host", defaultHost()),
-            args.getAs<unsigned int>("port", defaultPort()),
-            args.getAs<unsigned int>("maxfragmentsize", 100000));
-}
-
 OutConnector::OutConnector(ConverterSelectionStrategyPtr converters,
         const string& host, unsigned int port, unsigned int maxFragmentSize) :
         transport::ConverterSelectingConnector<string>(converters), logger(

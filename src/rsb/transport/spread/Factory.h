@@ -1,8 +1,8 @@
 /* ============================================================
  *
- * This file is part of the rsb-spread project.
+ * This file is a part of the rsb-spread project.
  *
- * Copyright (C) 2011, 2012, 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -26,15 +26,11 @@
 
 #pragma once
 
-#include <string>
-
 #include <rsc/runtime/Properties.h>
 
+#include <rsb/transport/InPushConnector.h>
 #include <rsb/transport/InPullConnector.h>
-#include <rsb/transport/ConverterSelectingConnector.h>
-
-#include "SpreadConnector.h"
-#include "MessageHandler.h"
+#include <rsb/transport/OutConnector.h>
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 
@@ -42,39 +38,23 @@ namespace rsb {
 namespace transport {
 namespace spread {
 
-/**
- * This class implements pull-style event receiving for the Spread
- * transport.
- *
- * @author jmoringe
- */
-class RSBSPREAD_EXPORT InPullConnector: public transport::InPullConnector {
+class RSBSPREAD_EXPORT Factory {
 public:
-    InPullConnector(ConverterSelectionStrategyPtr converters,
-                    const std::string& host = defaultHost(),
-                    unsigned int port = defaultPort());
-    virtual ~InPullConnector();
+    Factory();
 
-    void printContents(std::ostream& stream) const;
+    rsb::transport::InPushConnector*
+    createInPushConnector(const rsc::runtime::Properties& args);
 
-    void setScope(const Scope& scope);
+    rsb::transport::InPullConnector*
+    createInPullConnector(const rsc::runtime::Properties& args);
 
-    void activate();
-    void deactivate();
-
-    void setQualityOfServiceSpecs(const QualityOfServiceSpec& specs);
-
-    EventPtr raiseEvent(bool block);
-
+    rsb::transport::OutConnector*
+    createOutConnector(const rsc::runtime::Properties& args);
 private:
     rsc::logging::LoggerPtr logger;
-
-    bool active;
-
-    SpreadConnectorPtr connector;
-    boost::shared_ptr<Scope> activationScope;
-    MessageHandler processor;
 };
+
+typedef boost::shared_ptr<Factory> FactoryPtr;
 
 }
 }

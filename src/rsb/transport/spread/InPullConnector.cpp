@@ -40,15 +40,6 @@ namespace rsb {
 namespace transport {
 namespace spread {
 
-transport::InPullConnector* InPullConnector::create(const Properties& args) {
-    static LoggerPtr logger = Logger::getLogger("rsb.transport.spread.InPullConnector");
-    RSCDEBUG(logger, "creating InPullConnector with properties " << args);
-
-    return new InPullConnector(args.get<ConverterSelectionStrategyPtr> ("converters"),
-                               args.get<string>                        ("host", defaultHost()),
-                               args.getAs<unsigned int>                ("port", defaultPort()));
-}
-
 InPullConnector::InPullConnector(ConverterSelectionStrategyPtr converters,
                                  const string&                 host,
                                  unsigned int                  port) :
