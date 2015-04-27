@@ -33,10 +33,10 @@
 #include <rsb/transport/InPullConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
-#include "SpreadConnector.h"
 #include "MessageHandler.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
+#include "SpreadWrapper.h"
 
 namespace rsb {
 namespace transport {
@@ -50,11 +50,8 @@ namespace spread {
  */
 class RSBSPREAD_EXPORT InPullConnector: public transport::InPullConnector {
 public:
-    typedef rsb::transport::ConverterSelectingConnector<std::string>::ConverterSelectionStrategyPtr ConverterSelectionStrategyPtr;
-
     InPullConnector(ConverterSelectionStrategyPtr converters,
-                    const std::string& host = defaultHost(),
-                    unsigned int port = defaultPort());
+                    SpreadConnectionPtr connection);
     virtual ~InPullConnector();
 
     void printContents(std::ostream& stream) const;
@@ -68,13 +65,12 @@ public:
 
     EventPtr raiseEvent(bool block);
 
-    static transport::InPullConnector* create(const rsc::runtime::Properties& args);
 private:
     rsc::logging::LoggerPtr logger;
 
     bool active;
 
-    SpreadConnectorPtr connector;
+    SpreadWrapperPtr connector;
     boost::shared_ptr<Scope> activationScope;
     MessageHandler processor;
 };

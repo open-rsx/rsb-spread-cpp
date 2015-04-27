@@ -2,8 +2,7 @@
  *
  * This file is a part of the rsb-spread project.
  *
- * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -27,55 +26,56 @@
 
 #pragma once
 
+#include <map>
 #include <string>
+#include <utility>
+
+#include <boost/thread/recursive_mutex.hpp>
 
 #include <rsc/runtime/Properties.h>
 
+#include <rsb/transport/InPushConnector.h>
+#include <rsb/transport/InPullConnector.h>
 #include <rsb/transport/OutConnector.h>
-#include <rsb/transport/ConverterSelectingConnector.h>
 
+#include "SpreadConnection.h"
 #include "rsb/transport/spread/rsbspreadexports.h"
-#include "SpreadWrapper.h"
 
 namespace rsb {
 namespace transport {
 namespace spread {
 
-/**
- * @author jmoringe
- */
-class RSBSPREAD_EXPORT OutConnector: public transport::OutConnector,
-        public rsb::transport::ConverterSelectingConnector<std::string> {
+class RSBSPREAD_EXPORT Factory {
 public:
-    OutConnector(ConverterSelectionStrategyPtr converters,
-            SpreadConnectionPtr connection, unsigned int maxFragmentSize =
-                    100000);
-    virtual ~OutConnector();
+    Factory();
 
-    void printContents(std::ostream& stream) const;
+    rsb::transport::InPushConnector*
+    createInPushConnector(const rsc::runtime::Properties& args);
 
-    void setScope(const Scope& scope);
+    rsb::transport::InPullConnector*
+    createInPullConnector(const rsc::runtime::Properties& args);
 
-    void handle(rsb::EventPtr e);
-
-    void activate();
-    void deactivate();
-
-    void setQualityOfServiceSpecs(const QualityOfServiceSpec& specs);
-
+    rsb::transport::OutConnector*
+    createOutConnector(const rsc::runtime::Properties& args);
 private:
 
+    typedef std::pair<std::string, unsigned int> HostAndPort;
+
     rsc::logging::LoggerPtr logger;
-    bool active;
-    SpreadWrapperPtr connector;
-    unsigned int maxFragmentSize;
-    /**
-     * The number of bytes minimally required to successfully serialize the
-     * notification with the limited size for each fragment.
-     */
-    unsigned int minDataSpace;
+
+    std::map<HostAndPort, SpreadConnectionPtr> outConnectionsByOptions;
+    boost::recursive_mutex outConnectionsMutex;
+
+    SpreadConnectionPtr getOutConnection(const HostAndPort& options);
+
+    static HostAndPort parseOptions(const rsc::runtime::Properties& args);
+
+    template<class ConnectionType>
+    static SpreadConnectionPtr createConnection(const HostAndPort& options);
 
 };
+
+typedef boost::shared_ptr<Factory> FactoryPtr;
 
 }
 }

@@ -2,7 +2,7 @@
  *
  * This file is a part of the rsb-spread project.
  *
- * Copyright (C) 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -26,62 +26,56 @@
 
 #include "registration.h"
 
+#include <boost/bind.hpp>
 #include <boost/thread/mutex.hpp>
 
 #include <rsb/transport/Factory.h>
 
-#include "InPushConnector.h"
-#include "InPullConnector.h"
-#include "OutConnector.h"
-
-using namespace std;
+#include "Factory.h"
 
 namespace rsb {
 namespace transport {
 namespace spread {
 
-static bool registered = false;
+static FactoryPtr factory;
 static boost::mutex registrationMutex;
 
 void registerTransport() {
     boost::mutex::scoped_lock lock(registrationMutex);
 
-    if (!registered) {
+    if (!factory) {
+        factory.reset(new Factory());
+
+        std::set<std::string> options;
+        options.insert("host");
+        options.insert("port");
 
         {
-            InPushFactory& factory = getInPushFactory();
+            InPushFactory& connectorFactory = getInPushFactory();
 
-            set<string> options;
-            options.insert("host");
-            options.insert("port");
-
-            factory.registerConnector("spread", &InPushConnector::create,
-                                      "spread", true, options);
+            connectorFactory.registerConnector
+                ("spread",
+                 boost::bind(&Factory::createInPushConnector, factory, _1),
+                 "spread", true, options);
         }
 
         {
-            InPullFactory& factory = getInPullFactory();
+            InPullFactory& connectorFactory = getInPullFactory();
 
-            set<string> options;
-            options.insert("host");
-            options.insert("port");
-
-            factory.registerConnector("spread", &InPullConnector::create,
-                                      "spread", true, options);
+            connectorFactory.registerConnector
+                ("spread",
+                 boost::bind(&Factory::createInPullConnector, factory, _1),
+                 "spread", true, options);
         }
 
         {
-            OutFactory& factory = getOutFactory();
+            OutFactory& connectorFactory = getOutFactory();
 
-            set<string> options;
-            options.insert("host");
-            options.insert("port");
-
-            factory.registerConnector("spread", &OutConnector::create,
-                                      "spread", true, options);
+            connectorFactory.registerConnector
+                ("spread",
+                 boost::bind(&Factory::createOutConnector, factory, _1),
+                 "spread", true, options);
         }
-
-        registered = true;
     }
 
 }
@@ -106,6 +100,8 @@ void unregisterTransport() {
 
         // TODO factory.unregisterConnector("spread");
     }
+
+    factory.reset();
 }
 
 }

@@ -61,8 +61,7 @@ RSBSPREAD_EXPORT unsigned int defaultPort();
  */
 class RSBSPREAD_EXPORT SpreadConnection {
 public:
-    SpreadConnection(const std::string& prefix,
-                     const std::string& host   = defaultHost(),
+    SpreadConnection(const std::string& host   = defaultHost(),
                      unsigned int port         = defaultPort());
     virtual ~SpreadConnection();
 
@@ -79,7 +78,7 @@ public:
      * @throw CommException error connecting to the daemon
      * @throw rsc::misc::IllegalStateException already activated
      */
-    void activate();
+    virtual void activate();
 
     /**
      * Disconnects from the daemon.
@@ -87,7 +86,7 @@ public:
      * @pre there must be no more reader blocking in #receive
      * @throw rsc::misc::IllegalStateException already deactivated
      */
-    void deactivate();
+    virtual void deactivate();
 
     //@}
 
@@ -157,8 +156,6 @@ public:
     mailbox* getMailbox();
 
 private:
-    std::string generateId(const std::string& prefix);
-
     rsc::logging::LoggerPtr logger;
     /**
      * A flag to indicate whether we are connected to spread.
@@ -186,10 +183,6 @@ private:
      * Private name of this connection.
      */
     std::string spreadpg;
-    /**
-     * User-defined name to be used for this spread connection.
-     */
-    std::string conId;
     /**
      * Number of message sent via this connection.
      */

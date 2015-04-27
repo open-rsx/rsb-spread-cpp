@@ -35,10 +35,10 @@
 #include <rsb/transport/InPushConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
-#include "SpreadConnector.h"
 #include "ReceiverTask.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
+#include "SpreadWrapper.h"
 
 namespace rsb {
 namespace transport {
@@ -56,9 +56,8 @@ class RSBSPREAD_EXPORT InPushConnector: public transport::InPushConnector,
                                   public transport::ConverterSelectingConnector<std::string> {
     friend class ReceiverTask;
 public:
-    InPushConnector(converter::ConverterSelectionStrategy<std::string>::Ptr converters,
-                const std::string& host = defaultHost(),
-                unsigned int port = defaultPort());
+    InPushConnector(ConverterSelectionStrategyPtr converters,
+            SpreadConnectionPtr connection);
     virtual ~InPushConnector();
 
     void printContents(std::ostream& stream) const;
@@ -75,13 +74,12 @@ public:
 
     void setErrorStrategy(ParticipantConfig::ErrorStrategy strategy);
 
-    static transport::InPushConnector* create(const rsc::runtime::Properties& args);
 private:
     rsc::logging::LoggerPtr logger;
 
     bool active;
 
-    SpreadConnectorPtr connector;
+    SpreadWrapperPtr connector;
     boost::shared_ptr<Scope> activationScope;
 
     rsc::threading::TaskExecutorPtr exec;

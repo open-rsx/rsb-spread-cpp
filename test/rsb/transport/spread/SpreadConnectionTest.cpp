@@ -46,10 +46,12 @@ TEST(SpreadConnectionTest, testErrorOnBufferSaturation)
 
     const unsigned int bufferSize = 25000;
 
-    SpreadConnectionPtr sendConnection(new SpreadConnection("send", "localhost", SPREAD_PORT));
+    SpreadConnectionPtr sendConnection(
+            new SpreadConnection("localhost", SPREAD_PORT));
     sendConnection->activate();
 
-    SpreadConnectionPtr receiveConnection(new SpreadConnection("receive", "localhost", SPREAD_PORT));
+    SpreadConnectionPtr receiveConnection(
+            new SpreadConnection("localhost", SPREAD_PORT));
     receiveConnection->activate();
 
     const string groupName = "dasdasd";
@@ -80,7 +82,7 @@ TEST(SpreadConnectionTest, testErrorOnBufferSaturation)
 TEST(SpreadConnectionTest, testActivationStateChecks)
 {
 
-    SpreadConnection con("activity", "localhost", SPREAD_PORT);
+    SpreadConnection con("localhost", SPREAD_PORT);
 
     SpreadMessage sendMsg("foo");
     sendMsg.addGroup("blubb");
@@ -102,7 +104,7 @@ TEST(SpreadConnectionTest, testActivationStateChecks)
 
 TEST(SpreadConnectionTest, testDeactivateDestructorNotRequired)
 {
-    SpreadConnection con("nothrow", "localhost", SPREAD_PORT);
+    SpreadConnection con("localhost", SPREAD_PORT);
 }
 
 void receiveTester(SpreadConnectionPtr con) {
@@ -123,7 +125,7 @@ void receiveTester(SpreadConnectionPtr con) {
 TEST(SpreadConnectionTest, testInterruptReceive)
 {
 
-    SpreadConnectionPtr con(new SpreadConnection("interrupt", "localhost", SPREAD_PORT));
+    SpreadConnectionPtr con(new SpreadConnection("localhost", SPREAD_PORT));
     con->activate();
 
     // should be ok

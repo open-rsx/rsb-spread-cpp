@@ -33,12 +33,12 @@
 #include <boost/shared_ptr.hpp>
 
 #include <rsc/logging/Logger.h>
-#include <rsc/misc/UUID.h>
 
 #include <rsb/Scope.h>
 #include <rsb/QualityOfServiceSpec.h>
 
 #include <rsb/transport/Connector.h>
+#include <rsb/transport/ConverterSelectingConnector.h>
 
 #include "MembershipManager.h"
 #include "SpreadConnection.h"
@@ -52,12 +52,11 @@ namespace spread {
 /**
  * @author swrede
  */
-class RSBSPREAD_EXPORT SpreadConnector {
+class RSBSPREAD_EXPORT SpreadWrapper {
 public:
-    SpreadConnector(const std::string& host = defaultHost(),
-            unsigned int port = defaultPort());
+    SpreadWrapper(SpreadConnectionPtr connection);
 
-    virtual ~SpreadConnector();
+    virtual ~SpreadWrapper();
 
     void activate();
     void deactivate();
@@ -73,8 +72,6 @@ public:
     void send(const SpreadMessage& msg);
     void receive(SpreadMessagePtr msg);
 
-    void init(const std::string& host, unsigned int port);
-
     SpreadConnectionPtr getConnection();
 
     SpreadMessage::QOS getMessageQoS() const;
@@ -85,8 +82,6 @@ public:
 private:
 
     rsc::logging::LoggerPtr logger;
-
-    rsc::misc::UUID id;
 
     volatile bool activated;
     SpreadConnectionPtr con;
@@ -115,7 +110,9 @@ private:
 
 };
 
-typedef boost::shared_ptr<SpreadConnector> SpreadConnectorPtr;
+typedef boost::shared_ptr<SpreadWrapper> SpreadWrapperPtr;
+
+typedef rsb::transport::ConverterSelectingConnector<std::string>::ConverterSelectionStrategyPtr ConverterSelectionStrategyPtr;
 
 }
 }
