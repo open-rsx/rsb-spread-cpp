@@ -56,9 +56,8 @@ class RSBSPREAD_EXPORT InPushConnector: public transport::InPushConnector,
                                   public transport::ConverterSelectingConnector<std::string> {
     friend class ReceiverTask;
 public:
-    InPushConnector(converter::ConverterSelectionStrategy<std::string>::Ptr converters,
-                const std::string& host = defaultHost(),
-                unsigned int port = defaultPort());
+    InPushConnector(ConverterSelectionStrategyPtr converters,
+            SpreadConnectionPtr connection);
     virtual ~InPushConnector();
 
     void printContents(std::ostream& stream) const;

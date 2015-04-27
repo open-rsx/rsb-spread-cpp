@@ -49,8 +49,8 @@ class RSBSPREAD_EXPORT OutConnector: public transport::OutConnector,
         public rsb::transport::ConverterSelectingConnector<std::string> {
 public:
     OutConnector(ConverterSelectionStrategyPtr converters,
-            const std::string& host = defaultHost(), unsigned int port =
-                    defaultPort(), unsigned int maxFragmentSize = 100000);
+            SpreadConnectionPtr connection, unsigned int maxFragmentSize =
+                    100000);
     virtual ~OutConnector();
 
     void printContents(std::ostream& stream) const;

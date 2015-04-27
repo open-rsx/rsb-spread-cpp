@@ -54,8 +54,7 @@ namespace spread {
  */
 class RSBSPREAD_EXPORT SpreadConnector {
 public:
-    SpreadConnector(const std::string& host = defaultHost(),
-            unsigned int port = defaultPort());
+    SpreadConnector(SpreadConnectionPtr connection);
 
     virtual ~SpreadConnector();
 
@@ -72,8 +71,6 @@ public:
      */
     void send(const SpreadMessage& msg);
     void receive(SpreadMessagePtr msg);
-
-    void init(const std::string& host, unsigned int port);
 
     SpreadConnectionPtr getConnection();
 

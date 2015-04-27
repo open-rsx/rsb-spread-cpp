@@ -59,19 +59,11 @@ namespace spread {
 const SpreadConnector::QoSMap SpreadConnector::qosMapping =
         SpreadConnector::buildQoSMapping();
 
-SpreadConnector::SpreadConnector(const string& host, unsigned int port) {
-    init(host, port);
-}
-
-void SpreadConnector::init(const string& host, unsigned int port) {
-    this->logger = Logger::getLogger("rsb.transport.spread.SpreadConnector");
-    RSCDEBUG(logger, "SpreadConnector::init() entered");
-    this->activated = false;
-    // TODO ConnectionPool for SpreadConnections?!?
-    // TODO Send Message over Managing / Introspection Channel
-    this->con = SpreadConnectionPtr(new SpreadConnection(host, port));
-    this->memberships = MembershipManagerPtr(new MembershipManager());
+SpreadConnector::SpreadConnector(SpreadConnectionPtr connection) :
+        logger(Logger::getLogger("rsb.transport.spread.SpreadConnector")), activated(
+                false), con(connection), memberships(MembershipManagerPtr(new MembershipManager())) {
     setQualityOfServiceSpecs(QualityOfServiceSpec());
+    RSCDEBUG(logger, "New instance created");
 }
 
 void SpreadConnector::activate() {

@@ -51,8 +51,7 @@ namespace spread {
 class RSBSPREAD_EXPORT InPullConnector: public transport::InPullConnector {
 public:
     InPullConnector(ConverterSelectionStrategyPtr converters,
-                    const std::string& host = defaultHost(),
-                    unsigned int port = defaultPort());
+                    SpreadConnectionPtr connection);
     virtual ~InPullConnector();
 
     void printContents(std::ostream& stream) const;

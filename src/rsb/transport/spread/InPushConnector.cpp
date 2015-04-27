@@ -45,11 +45,10 @@ namespace transport {
 namespace spread {
 
 InPushConnector::InPushConnector(const ConverterSelectionStrategyPtr converters,
-                                 const string&                       host,
-                                 unsigned int                        port) :
+        SpreadConnectionPtr connection) :
     transport::ConverterSelectingConnector<string>(converters), logger(
             Logger::getLogger("rsb.transport.spread.InPushConnector")), active(false),
-            connector(new SpreadConnector(host, port)) {
+            connector(new SpreadConnector(connection)) {
     this->exec = TaskExecutorPtr(new ThreadedTaskExecutor);
     this->rec = boost::shared_ptr<ReceiverTask>(new ReceiverTask(
             this->connector->getConnection(), HandlerPtr(), this));

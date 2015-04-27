@@ -32,6 +32,7 @@
 #include <rsb/transport/InPullConnector.h>
 #include <rsb/transport/OutConnector.h>
 
+#include "SpreadConnection.h"
 #include "rsb/transport/spread/rsbspreadexports.h"
 
 namespace rsb {
@@ -52,6 +53,10 @@ public:
     createOutConnector(const rsc::runtime::Properties& args);
 private:
     rsc::logging::LoggerPtr logger;
+
+    static SpreadConnectionPtr createConnection(
+            const rsc::runtime::Properties& args);
+
 };
 
 typedef boost::shared_ptr<Factory> FactoryPtr;

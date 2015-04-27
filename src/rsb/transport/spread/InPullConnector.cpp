@@ -41,11 +41,10 @@ namespace transport {
 namespace spread {
 
 InPullConnector::InPullConnector(ConverterSelectionStrategyPtr converters,
-                                 const string&                 host,
-                                 unsigned int                  port) :
+        SpreadConnectionPtr connection) :
     logger(Logger::getLogger("rsb.transport.spread.InPullConnector")),
     active(false),
-    connector(new SpreadConnector(host, port)),
+    connector(new SpreadConnector(connection)),
     processor(converters) {
 }
 

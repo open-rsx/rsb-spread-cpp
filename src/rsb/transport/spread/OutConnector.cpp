@@ -49,10 +49,10 @@ namespace transport {
 namespace spread {
 
 OutConnector::OutConnector(ConverterSelectionStrategyPtr converters,
-        const string& host, unsigned int port, unsigned int maxFragmentSize) :
+        SpreadConnectionPtr connection, unsigned int maxFragmentSize) :
         transport::ConverterSelectingConnector<string>(converters), logger(
-                Logger::getLogger("rsb.transport.spread.OutConnector")), active(false), connector(
-                new SpreadConnector(host, port)), maxFragmentSize(
+                Logger::getLogger("rsb.transport.spread.OutConnector")), active(
+                false), connector(new SpreadConnector(connection)), maxFragmentSize(
                 maxFragmentSize), minDataSpace(5) {
 }
 

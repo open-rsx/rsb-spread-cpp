@@ -40,14 +40,20 @@ Factory::Factory()
     : logger(rsc::logging::Logger::getLogger("rsb.transport.spread.Factory")) {
 }
 
+SpreadConnectionPtr Factory::createConnection(
+            const rsc::runtime::Properties& args) {
+    return SpreadConnectionPtr(
+            new SpreadConnection(args.get<string>("host", defaultHost()),
+                    args.getAs<unsigned int>("port", defaultPort())));
+}
+
 rsb::transport::InPushConnector*
 Factory::createInPushConnector(const rsc::runtime::Properties& args) {
     RSCDEBUG(this->logger, "creating InPushConnector with properties " << args);
 
     return new InPushConnector(
             args.get<ConverterSelectionStrategyPtr>("converters"),
-            args.get<string>("host", defaultHost()),
-            args.getAs<unsigned int>("port", defaultPort()));
+            createConnection(args));
 }
 
 rsb::transport::InPullConnector*
@@ -56,8 +62,7 @@ Factory::createInPullConnector(const rsc::runtime::Properties& args) {
 
     return new InPullConnector(
             args.get<ConverterSelectionStrategyPtr>("converters"),
-            args.get<string>("host", defaultHost()),
-            args.getAs<unsigned int>("port", defaultPort()));
+            createConnection(args));
 }
 
 rsb::transport::OutConnector*
@@ -65,8 +70,7 @@ Factory::createOutConnector(const rsc::runtime::Properties& args) {
     RSCDEBUG(this->logger, "creating OutConnector with properties " << args);
     return new OutConnector(
             args.get<ConverterSelectionStrategyPtr>("converters"),
-            args.get<string>("host", defaultHost()),
-            args.getAs<unsigned int>("port", defaultPort()),
+            createConnection(args),
             args.getAs<unsigned int>("maxfragmentsize", 100000));
 }
 

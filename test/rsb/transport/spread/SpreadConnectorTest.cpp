@@ -49,21 +49,27 @@ using namespace rsb::transport::spread;
 static int dummy = pullInConnectorTest();
 
 InPullConnectorPtr createSpreadInPullConnector() {
-    return InPullConnectorPtr(new rsb::transport::spread::InPullConnector(converterRepository<string>()->getConvertersForDeserialization(),
-                                                                          defaultHost(),
-                                                                          SPREAD_PORT));
+    return InPullConnectorPtr(
+            new rsb::transport::spread::InPullConnector(
+                    converterRepository<string>()->getConvertersForDeserialization(),
+                    SpreadConnectionPtr(
+                            new SpreadConnection(defaultHost(), SPREAD_PORT))));
 }
 
 InPushConnectorPtr createSpreadInPushConnector() {
-    return InPushConnectorPtr(new rsb::transport::spread::InPushConnector(converterRepository<string>()->getConvertersForDeserialization(),
-                                                                          defaultHost(),
-                                                                          SPREAD_PORT));
+    return InPushConnectorPtr(
+            new rsb::transport::spread::InPushConnector(
+                    converterRepository<string>()->getConvertersForDeserialization(),
+                    SpreadConnectionPtr(
+                            new SpreadConnection(defaultHost(), SPREAD_PORT))));
 }
 
 OutConnectorPtr createSpreadOutConnector() {
-    return OutConnectorPtr(new rsb::transport::spread::OutConnector(converterRepository<string>()->getConvertersForSerialization(),
-                                                                    defaultHost(),
-                                                                    SPREAD_PORT));
+    return OutConnectorPtr(
+            new rsb::transport::spread::OutConnector(
+                    converterRepository<string>()->getConvertersForSerialization(),
+                    SpreadConnectionPtr(
+                            new SpreadConnection(defaultHost(), SPREAD_PORT))));
 }
 
 const ConnectorTestSetup spreadSetup(createSpreadInPullConnector,
