@@ -78,7 +78,7 @@ public:
      * @throw CommException error connecting to the daemon
      * @throw rsc::misc::IllegalStateException already activated
      */
-    void activate();
+    virtual void activate();
 
     /**
      * Disconnects from the daemon.
@@ -86,7 +86,7 @@ public:
      * @pre there must be no more reader blocking in #receive
      * @throw rsc::misc::IllegalStateException already deactivated
      */
-    void deactivate();
+    virtual void deactivate();
 
     //@}
 

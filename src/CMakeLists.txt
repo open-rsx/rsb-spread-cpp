@@ -36,6 +36,7 @@ set(SOURCES rsb/Plugin.cpp
             rsb/transport/spread/SpreadMessage.cpp
             rsb/transport/spread/SpreadGroup.cpp
             rsb/transport/spread/SpreadConnection.cpp
+            rsb/transport/spread/RefCountingSpreadConnection.cpp
             rsb/transport/spread/SpreadWrapper.cpp
 
             rsb/transport/spread/MembershipManager.cpp
@@ -53,6 +54,7 @@ set(SOURCES rsb/Plugin.cpp
 set(HEADERS rsb/transport/spread/SpreadMessage.h
             rsb/transport/spread/SpreadGroup.h
             rsb/transport/spread/SpreadConnection.h
+            rsb/transport/spread/RefCountingSpreadConnection.h
             rsb/transport/spread/SpreadWrapper.h
 
             rsb/transport/spread/MembershipManager.h

@@ -26,6 +26,12 @@
 
 #pragma once
 
+#include <map>
+#include <string>
+#include <utility>
+
+#include <boost/thread/recursive_mutex.hpp>
+
 #include <rsc/runtime/Properties.h>
 
 #include <rsb/transport/InPushConnector.h>
@@ -52,10 +58,20 @@ public:
     rsb::transport::OutConnector*
     createOutConnector(const rsc::runtime::Properties& args);
 private:
+
+    typedef std::pair<std::string, unsigned int> HostAndPort;
+
     rsc::logging::LoggerPtr logger;
 
-    static SpreadConnectionPtr createConnection(
-            const rsc::runtime::Properties& args);
+    std::map<HostAndPort, SpreadConnectionPtr> outConnectionsByOptions;
+    boost::recursive_mutex outConnectionsMutex;
+
+    SpreadConnectionPtr getOutConnection(const HostAndPort& options);
+
+    static HostAndPort parseOptions(const rsc::runtime::Properties& args);
+
+    template<class ConnectionType>
+    static SpreadConnectionPtr createConnection(const HostAndPort& options);
 
 };
 
