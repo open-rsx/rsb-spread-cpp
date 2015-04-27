@@ -33,7 +33,6 @@
 #include <boost/shared_ptr.hpp>
 
 #include <rsc/logging/Logger.h>
-#include <rsc/misc/UUID.h>
 
 #include <rsb/Scope.h>
 #include <rsb/QualityOfServiceSpec.h>
@@ -86,8 +85,6 @@ public:
 private:
 
     rsc::logging::LoggerPtr logger;
-
-    rsc::misc::UUID id;
 
     volatile bool activated;
     SpreadConnectionPtr con;

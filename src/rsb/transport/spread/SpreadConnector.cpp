@@ -3,7 +3,7 @@
  * This file is part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2012, 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2012, 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -69,8 +69,7 @@ void SpreadConnector::init(const string& host, unsigned int port) {
     this->activated = false;
     // TODO ConnectionPool for SpreadConnections?!?
     // TODO Send Message over Managing / Introspection Channel
-    this->con = SpreadConnectionPtr(
-            new SpreadConnection(id.getIdAsString(), host, port));
+    this->con = SpreadConnectionPtr(new SpreadConnection(host, port));
     this->memberships = MembershipManagerPtr(new MembershipManager());
     setQualityOfServiceSpecs(QualityOfServiceSpec());
 }

@@ -44,7 +44,7 @@ TEST(MembershipManagerTest, testRoundtrip)
     MembershipManagerPtr mm(new MembershipManager());
     // TODO convert this to a mock-only test case
     SpreadConnectionPtr sp(
-            new SpreadConnection("blub", defaultHost(), SPREAD_PORT));
+            new SpreadConnection(defaultHost(), SPREAD_PORT));
     sp->activate();
 
     ASSERT_NO_THROW(mm->join("a",sp));

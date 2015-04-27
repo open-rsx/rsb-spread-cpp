@@ -52,8 +52,7 @@ namespace spread {
 #define SPREAD_MAX_GROUPS   100
 #define SPREAD_MAX_MESSLEN  180000
 
-SpreadConnection::SpreadConnection(const string& id, const string& host,
-        unsigned int port) :
+SpreadConnection::SpreadConnection(const string& host, unsigned int port) :
     logger(Logger::getLogger("rsb.transport.spread.SpreadConnection")), connected(false),
     host(host), port(port),
 #ifdef WIN32
@@ -63,8 +62,8 @@ SpreadConnection::SpreadConnection(const string& id, const string& host,
                ? lexical_cast<string>(port)
                : str(format("%1%@%2%") % port % host)),
 #endif
-    conId(id), msgCount(0) {
-    RSCDEBUG(logger, "instantiated spread connection with id " << conId
+    msgCount(0) {
+    RSCDEBUG(logger, "instantiated spread connection"
              << " to spread daemon at " << spreadname);
 }
 
@@ -78,7 +77,7 @@ SpreadConnection::~SpreadConnection() {
 void SpreadConnection::activate() {
     // XXX spread init and group join - not threadsafe, what to do about this?
     if (connected) {
-        throw rsc::misc::IllegalStateException("Connection with id " + conId
+        throw rsc::misc::IllegalStateException("Connection with id " + spreadpg
                 + " is already active.");
     }
 
@@ -136,8 +135,7 @@ void SpreadConnection::activate() {
 void SpreadConnection::deactivate() {
 
     if (!connected) {
-        throw rsc::misc::IllegalStateException("Connection with id " + conId
-                + " is not active.");
+        throw rsc::misc::IllegalStateException("Connection is not active.");
     }
     // we can safely ignore errors here since there is no way to recover any
     // of them
@@ -154,8 +152,7 @@ bool SpreadConnection::isActive() {
 void SpreadConnection::receive(SpreadMessagePtr sm) {
 
     if (!connected) {
-        throw rsc::misc::IllegalStateException("Connection with id " + conId
-                + " is not active.");
+        throw rsc::misc::IllegalStateException("Connection is not active.");
     }
 
     sm->reset();
@@ -252,8 +249,7 @@ void SpreadConnection::send(const SpreadMessage& msg) {
 
     // TODO check message size, if larger than ~100KB throw exception
     if (!connected) {
-        throw rsc::misc::IllegalStateException("Connection with id " + conId
-                + " is not active.");
+        throw rsc::misc::IllegalStateException("Connection is not active.");
     }
 
     const unsigned int groupCount = msg.getGroupCount();
@@ -315,21 +311,11 @@ void SpreadConnection::send(const SpreadMessage& msg) {
 void SpreadConnection::interruptReceive() {
 
     if (!connected) {
-        throw rsc::misc::IllegalStateException("Connection with id " + conId
-                + " is not active.");
+        throw rsc::misc::IllegalStateException("Connection is not active.");
     }
 
     SP_multicast(con, RELIABLE_MESS, spreadpg.c_str(), 0, 0, 0);
 
-}
-
-string SpreadConnection::generateId(const string& prefix) {
-    // TODO generate meaningful and unique Id according to MAX_PRIVATE_NAME
-    //            uuid_t id;
-    //            uuid_generate(id);
-    //            char buf[37];
-    //            uuid_unparse(id,buf);
-    return prefix;
 }
 
 unsigned long SpreadConnection::getMsgCount() {
@@ -338,8 +324,7 @@ unsigned long SpreadConnection::getMsgCount() {
 
 mailbox* SpreadConnection::getMailbox() {
     if (!connected) {
-        throw rsc::misc::IllegalStateException("Connection with id " + conId
-                + " is not active.");
+        throw rsc::misc::IllegalStateException("Connection is not active.");
     }
     return& con;
 }
