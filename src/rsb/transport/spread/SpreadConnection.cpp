@@ -3,7 +3,7 @@
  * This file is a part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -72,6 +72,11 @@ SpreadConnection::~SpreadConnection() {
     if (connected) {
         deactivate();
     }
+}
+
+const string SpreadConnection::getTransportURL() const {
+    return boost::str(boost::format("spread://%1%:%2%")
+                      % this->host % this->port);
 }
 
 void SpreadConnection::activate() {

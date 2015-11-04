@@ -3,7 +3,7 @@
  * This file is part of the rsb-spread project
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -64,6 +64,8 @@ public:
     SpreadConnection(const std::string& host   = defaultHost(),
                      unsigned int port         = defaultPort());
     virtual ~SpreadConnection();
+
+    const std::string getTransportURL() const;
 
     /**
      * @name connection state management

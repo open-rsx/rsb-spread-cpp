@@ -66,6 +66,10 @@ SpreadWrapper::SpreadWrapper(SpreadConnectionPtr connection) :
     RSCDEBUG(logger, "New instance created");
 }
 
+const string SpreadWrapper::getTransportURL() const {
+    return this->con->getTransportURL();
+}
+
 void SpreadWrapper::activate() {
     // connect to spread
     this->con->activate();

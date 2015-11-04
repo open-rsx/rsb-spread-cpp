@@ -3,7 +3,7 @@
  * This file is part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2012, 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2012, 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -63,6 +63,10 @@ InPushConnector::~InPushConnector() {
 void InPushConnector::printContents(ostream& stream) const {
     stream << "active = " << this->active
            << "connector = " << this->connector;
+}
+
+const string InPushConnector::getTransportURL() const {
+    return this->connector->getTransportURL();
 }
 
 void InPushConnector::activate() {
