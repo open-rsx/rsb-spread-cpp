@@ -139,7 +139,7 @@ AssemblyPool::~AssemblyPool() {
 
 bool AssemblyPool::isPruning() const {
     boost::recursive_mutex::scoped_lock lock(pruningMutex);
-    return pruningTask;
+    return pruningTask.get() != NULL;
 }
 
 void AssemblyPool::setPruning(const bool& prune) {
