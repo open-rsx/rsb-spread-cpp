@@ -146,7 +146,7 @@ TEST(AssemblyPoolTest, testAssembly) {
         initialNotification->set_data_part(0);
 
         protocol::NotificationPtr result = pool.add(initialNotification);
-        ASSERT_TRUE(result);
+        ASSERT_TRUE(result.get());
         EXPECT_EQ(initialString, result->data());
 
     }
@@ -189,7 +189,7 @@ TEST(AssemblyPoolTest, testAssembly) {
             protocol::NotificationPtr result = pool.add(newNotification);
 
             if (i == (dataParts - 1)) {
-                EXPECT_TRUE(result);
+                EXPECT_TRUE(result.get());
                 EXPECT_EQ(containedData.str(), result->data());
             } else {
                 EXPECT_FALSE(result);
@@ -242,7 +242,7 @@ TEST(AssemblyPoolTest, testPruningDefaultOff) {
         newNotification->set_data_part(1);
 
         protocol::NotificationPtr result = pool.add(newNotification);
-        EXPECT_TRUE(result);
+        EXPECT_TRUE(result.get());
 
     }
 
@@ -340,7 +340,7 @@ TEST(AssemblyPoolTest, testPruning) {
 
             protocol::NotificationPtr result = pool.add(newNotification);
 
-            EXPECT_TRUE(result);
+            EXPECT_TRUE(result.get());
 
         }
     }
