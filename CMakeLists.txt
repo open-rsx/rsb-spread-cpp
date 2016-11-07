@@ -30,7 +30,7 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE)
 project(rsb-spread)
 
 set(VERSION_MAJOR "0" CACHE STRING "Major project version part")
-set(VERSION_MINOR "15" CACHE STRING "Minor project version part")
+set(VERSION_MINOR "16" CACHE STRING "Minor project version part")
 set(VERSION_SUFFIX "${VERSION_MAJOR}.${VERSION_MINOR}")
 set(SO_VERSION     "${VERSION_MAJOR}.${VERSION_MINOR}")
 
