@@ -108,26 +108,25 @@ void ReceiverTask::execute() {
 
     } catch (rsb::CommException& e) {
         // TODO QoS would not like swallowing the exception
-        rsc::debug::DebugToolsPtr tools = rsc::debug::DebugTools::newInstance();
         switch (this->errorStrategy) {
         case ParticipantConfig::ERROR_STRATEGY_LOG:
             RSCERROR(logger,
-                     "Error receiving spread message: " << e.what() << endl << tools->exceptionInfo(e) << "\nTerminating receiving new spread messages!");
+                     "Error receiving spread message: " << e.what() << endl << rsc::debug::exceptionInfo(e) << "\nTerminating receiving new spread messages!");
             break;
         case ParticipantConfig::ERROR_STRATEGY_PRINT:
             cerr << "Error receiving spread message: " << e.what() << endl
-                 << tools->exceptionInfo(e) << endl
+                 << rsc::debug::exceptionInfo(e) << endl
                  << "Terminating receiving new spread messages!" << endl;
             break;
         case ParticipantConfig::ERROR_STRATEGY_EXIT:
             RSCFATAL(logger,
-                     "Error receiving spread message: " << e.what() << endl << tools->exceptionInfo(e) << "\nTerminating the whole process as requested via configuration.");
+                     "Error receiving spread message: " << e.what() << endl << rsc::debug::exceptionInfo(e) << "\nTerminating the whole process as requested via configuration.");
             exit(1);
             break;
         default:
             assert(false);
             RSCERROR(logger,
-                     "Error receiving spread message: " << e.what() << endl << tools->exceptionInfo(e) << "\nTerminating receiving new spread messages!");
+                     "Error receiving spread message: " << e.what() << endl << rsc::debug::exceptionInfo(e) << "\nTerminating receiving new spread messages!");
             break;
         }
         this->cancel();
