@@ -3,7 +3,7 @@
  * This file is a part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2013, 2015, 2017 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -262,6 +262,12 @@ void SpreadConnection::send(const SpreadMessage& msg) {
         throw CommException("Group information missing in message");
     }
 
+    // The Spread client library does not seem to be thread-safe on
+    // win32 (despite what the documentation says).
+#if defined WIN32
+    boost::mutex::scoped_lock lock(this->mutex);
+#endif
+
     int ret;
     if (groupCount == 1) {
         // use SP_multicast
@@ -318,6 +324,11 @@ void SpreadConnection::interruptReceive() {
     if (!connected) {
         throw rsc::misc::IllegalStateException("Connection is not active.");
     }
+
+    // See comment in SpreadConnection::send.
+#if defined WIN32
+    boost::mutex::scoped_lock lock(this->mutex);
+#endif
 
     SP_multicast(con, RELIABLE_MESS, spreadpg.c_str(), 0, 0, 0);
 
