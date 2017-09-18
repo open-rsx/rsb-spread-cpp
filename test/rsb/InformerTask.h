@@ -64,7 +64,6 @@ public:
 private:
     Scope scope;
     unsigned int numEvents;
-    unsigned int dataSizeInBytes;
     unsigned int sentEvents;
     rsb::transport::OutConnectorPtr connector;
     std::vector<EventPtr> events;
