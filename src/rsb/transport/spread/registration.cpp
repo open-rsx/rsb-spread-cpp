@@ -2,7 +2,7 @@
  *
  * This file is a part of the rsb-spread project.
  *
- * Copyright (C) 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2013, 2015, 2017 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -83,23 +83,24 @@ void registerTransport() {
 void unregisterTransport() {
     boost::mutex::scoped_lock lock(registrationMutex);
 
+    /* TODO
     {
-        InPushFactory& factory = getInPushFactory();
+        InPushFactory& connectorFactory = getInPushFactory();
 
-        // TODO factory.unregisterConnector("spread");
+        connectorFactory.unregisterConnector("spread");
     }
 
     {
-        InPullFactory& factory = getInPullFactory();
+        InPullFactory& connectorFactory = getInPullFactory();
 
-        // TODO factory.unregisterConnector("spread");
+        connectorFactory.unregisterConnector("spread");
     }
 
     {
-        OutFactory& factory = getOutFactory();
+        OutFactory& connectorFactory = getOutFactory();
 
-        // TODO factory.unregisterConnector("spread");
-    }
+        connectorFactory.unregisterConnector("spread");
+    }*/
 
     factory.reset();
 }
