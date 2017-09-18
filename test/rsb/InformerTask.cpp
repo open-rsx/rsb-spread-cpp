@@ -64,7 +64,7 @@ void InformerTask::execute() {
         thisScope = Scope("/other").concat(this->scope);
     }
     EventPtr event(new Event(thisScope, this->data, rsc::runtime::typeName<string>()));
-    event->setEventId(id, this->sentEvents);
+    event->setId(id, this->sentEvents);
 
     // add causing events
     unsigned int numCauses = rand() % 10;

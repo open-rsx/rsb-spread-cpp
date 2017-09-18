@@ -119,7 +119,7 @@ TEST_P(ConnectorTest, testSendLongGroupNames) {
     e->setScope(longScope);
     e->setType(rsc::runtime::typeName<string>());
     e->setData(boost::shared_ptr<string>(new string("fooo")));
-    e->setEventId(rsc::misc::UUID(), 2323);
+    e->setId(rsc::misc::UUID(), 2323);
     out->handle(e);
 
     out->deactivate();
@@ -134,7 +134,7 @@ TEST_P(ConnectorTest, testSetSendTime) {
     e->setScope(Scope("/random/useless/scope"));
     e->setType(rsc::runtime::typeName<string>());
     e->setData(boost::shared_ptr<string>(new string("fooo")));
-    e->setEventId(rsc::misc::UUID(), 2323);
+    e->setId(rsc::misc::UUID(), 2323);
 
     boost::uint64_t beforeSend = rsc::misc::currentTimeMicros();
     out->handle(e);
@@ -225,7 +225,7 @@ TEST_P(ConnectorTest, testHierarchySending) {
         for (unsigned int i = 0; i < source->getEvents().size(); ++i) {
             EventPtr sent = source->getEvents()[i];
             EventPtr received = observer->getEvents()[i];
-            EXPECT_EQ(sent->getEventId(), received->getEventId());
+            EXPECT_EQ(sent->getId(), received->getId());
             EXPECT_EQ(sent->getType(), received->getType());
             EXPECT_EQ(*sent->getScopePtr(), *received->getScopePtr());
         }
@@ -333,7 +333,7 @@ TEST_P(ConnectorTest, testRoundtrip) {
         for (unsigned int i = 0; i < source->getEvents().size(); ++i) {
             EventPtr sent = source->getEvents()[i];
             EventPtr received = observer.getEvents()[i];
-            EXPECT_EQ(sent->getEventId(), received->getEventId()) << "Error matching event id for index " << i << " and message size " << *sizeIt;
+            EXPECT_EQ(sent->getId(), received->getId()) << "Error matching event id for index " << i << " and message size " << *sizeIt;
             EXPECT_EQ(sent->getType(), received->getType()) << "Error matching event type for index " << i << " and message size " << *sizeIt;
             EXPECT_EQ(*sent->getScopePtr(), *received->getScopePtr()) << "Error matching event scope for index " << i << " and message size " << *sizeIt;
 
@@ -341,8 +341,8 @@ TEST_P(ConnectorTest, testRoundtrip) {
             EXPECT_EQ(sent->getCauses(), received->getCauses());
 
             // meta data
-            EXPECT_EQ(sent->getMetaData().getSenderId(),
-                    received->getMetaData().getSenderId());
+            EXPECT_EQ(sent->getId().getParticipantId(),
+                    received->getId().getParticipantId());
 
             EXPECT_GE(received->getMetaData().getCreateTime(), sendTime);
             EXPECT_LE(received->getMetaData().getCreateTime(),
