@@ -60,7 +60,7 @@ public:
         UNRELIABLE = 0x00000001,
         RELIABLE = 0x00000002,
         FIFO = 0x00000004,
-        CASUAL = 0x00000008,
+        CAUSAL = 0x00000008,
         AGREED = 0x00000010,
         SAFE = 0x00000020
     };
