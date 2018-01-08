@@ -27,8 +27,6 @@
 
 #include "MembershipManager.h"
 
-#include "SpreadGroup.h"
-
 namespace rsb {
 namespace transport {
 namespace spread {
@@ -43,7 +41,7 @@ MembershipManager::~MembershipManager() {
 void MembershipManager::join(const std::string& group) {
     GroupMap::iterator it = this->groups.find(group);
     if (it == this->groups.end()) {
-        SpreadGroup(group).join(this->connection);
+        this->connection->join(group);
         this->groups[group] = 1;
     } else {
         it->second++;
@@ -55,7 +53,7 @@ void MembershipManager::leave(const std::string& group) {
     assert(it != this->groups.end());
     if (--it->second == 0) {
         this->groups.erase(it);
-        SpreadGroup(group).leave(this->connection);
+        this->connection->leave(group);
     }
 }
 

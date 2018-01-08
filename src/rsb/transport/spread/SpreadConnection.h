@@ -96,6 +96,31 @@ public:
     //@}
 
     /**
+     * @name group management
+     */
+    //@{
+
+    /**
+     * Joins the Spread group @a group.
+     *
+     * @param group Name of the group
+     * @throw rsc::misc::IllegalStateException connection was not active
+     * @throw CommException Spread error joining
+     */
+    void join(const std::string& group);
+
+    /**
+     * Leaves the Spread group @a group.
+     *
+     * @param group Name of the Spread group.
+     * @throw rsc::misc::IllegalStateException connection was not active
+     * @throw CommException Spread error leaving
+     */
+    void leave(const std::string& group);
+
+    //@}
+
+    /**
      * @name fundamental message exchange
      */
     //@{
@@ -143,15 +168,6 @@ public:
      * @return @c true if connected
      */
     bool isActive();
-
-    /**
-     * Returns the internally used mailbox for other low-level functions.
-     *
-     * @return mailbox
-     * @todo why pointer? mailbox is a typedef to int? If pointer is required
-     *       use a shared ptr
-     */
-    mailbox* getMailbox();
 
 private:
     rsc::logging::LoggerPtr logger;

@@ -153,6 +153,66 @@ bool SpreadConnection::isActive() {
     return this->connected;
 }
 
+void SpreadConnection::join(const std::string& group) {
+
+    if (!this->connected) {
+        throw rsc::misc::IllegalStateException("Connection is not active.");
+    }
+
+    int ret = SP_join(this->con, group.c_str());
+    if (ret != 0) {
+        std::stringstream description;
+        description << "Error joining Spread group '" << group << "': ";
+        switch (ret) {
+        case ILLEGAL_GROUP:
+            description << "ILLEGAL_GROUP";
+            break;
+        case ILLEGAL_SESSION:
+            description << "ILLEGAL_SESSION";
+            break;
+        case CONNECTION_CLOSED:
+            description << "CONNECTION_CLOSED";
+            break;
+        default:
+            description << "Unknown Spread error with code " << ret;
+            break;
+        }
+        RSCERROR(this->logger, description.str());
+        throw CommException(description.str());
+    }
+
+}
+
+void SpreadConnection::leave(const std::string& group) {
+
+    if (!this->connected) {
+        throw rsc::misc::IllegalStateException("Connection is not active.");
+    }
+
+    int ret = SP_leave(this->con, group.c_str());
+    if (ret != 0) {
+        std::stringstream description;
+        description << "Error leaving Spread group '" << group << "': ";
+        switch (ret) {
+        case ILLEGAL_GROUP:
+            description << "ILLEGAL_GROUP";
+            break;
+        case ILLEGAL_SESSION:
+            description << "ILLEGAL_SESSION";
+            break;
+        case CONNECTION_CLOSED:
+            description << "CONNECTION_CLOSED";
+            break;
+        default:
+            description << "Unknown Spread error with code " << ret;
+            break;
+        }
+        RSCERROR(this->logger, description.str());
+        throw CommException(description.str());
+    }
+
+}
+
 void SpreadConnection::receive(SpreadMessagePtr sm) {
 
     if (!this->connected) {
@@ -327,13 +387,6 @@ void SpreadConnection::interruptReceive() {
 
     SP_multicast(this->con, RELIABLE_MESS, this->spreadpg.c_str(), 0, 0, 0);
 
-}
-
-mailbox* SpreadConnection::getMailbox() {
-    if (!this->connected) {
-        throw rsc::misc::IllegalStateException("Connection is not active.");
-    }
-    return &this->con;
 }
 
 std::string defaultHost() {

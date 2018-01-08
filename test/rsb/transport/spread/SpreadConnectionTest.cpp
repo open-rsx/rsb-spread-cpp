@@ -93,8 +93,6 @@ TEST(SpreadConnectionTest, testActivationStateChecks)
 
     EXPECT_THROW(con.interruptReceive(), rsc::misc::IllegalStateException);
 
-    EXPECT_THROW(con.getMailbox(), rsc::misc::IllegalStateException);
-
     EXPECT_THROW(con.deactivate(), rsc::misc::IllegalStateException) << "duplicated deactivation must not be possible";
 
     con.activate();
