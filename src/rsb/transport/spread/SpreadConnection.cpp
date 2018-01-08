@@ -38,10 +38,6 @@
 
 #include <rsb/CommException.h>
 
-using namespace std;
-
-using namespace boost;
-
 using namespace rsc::logging;
 
 namespace rsb {
@@ -51,45 +47,49 @@ namespace spread {
 #define SPREAD_MAX_GROUPS   100
 #define SPREAD_MAX_MESSLEN  180000
 
-SpreadConnection::SpreadConnection(const string& host, unsigned int port) :
-    logger(Logger::getLogger("rsb.transport.spread.SpreadConnection")), connected(false),
+SpreadConnection::SpreadConnection(const std::string& host,
+                                   unsigned int port) :
+    logger(Logger::getLogger("rsb.transport.spread.SpreadConnection")),
+    connected(false),
     host(host), port(port),
 #ifdef WIN32
-    spreadname(str(format("%1%@%2%") % port % host))
+    spreadname(boost::str(boost::format("%1%@%2%") % port % host))
 #else
     spreadname((host == defaultHost())
-               ? lexical_cast<string>(port)
-               : str(format("%1%@%2%") % port % host))
+               ? boost::lexical_cast<std::string>(port)
+               : boost::str(boost::format("%1%@%2%") % port % host))
 #endif
     {
-    RSCDEBUG(logger, "instantiated spread connection"
+    RSCDEBUG(this->logger, "instantiated spread connection"
              << " to spread daemon at " << spreadname);
 }
 
 SpreadConnection::~SpreadConnection() {
-    RSCDEBUG(logger, "destroying SpreadConnection object");
-    if (connected) {
+    RSCDEBUG(this->logger, "destroying SpreadConnection object");
+    if (this->connected) {
         deactivate();
     }
 }
 
-const string SpreadConnection::getTransportURL() const {
+const std::string SpreadConnection::getTransportURL() const {
     return boost::str(boost::format("spread://%1%:%2%")
                       % this->host % this->port);
 }
 
 void SpreadConnection::activate() {
     // XXX spread init and group join - not threadsafe, what to do about this?
-    if (connected) {
-        throw rsc::misc::IllegalStateException("Connection with id " + spreadpg
-                + " is already active.");
+    if (this->connected) {
+        throw rsc::misc::IllegalStateException
+            (boost::str(boost::format("Connection with id %1%"
+                                      " is already active.")
+                        % this->spreadpg));
     }
 
-    RSCDEBUG(logger, "connecting to spread daemon at " << spreadname);
+    RSCDEBUG(this->logger, "connecting to spread daemon at " << this->spreadname);
     char spreadPrivateGroup[MAX_GROUP_NAME];
-    int ret = SP_connect(spreadname.c_str(), 0, 0, 0, &con, spreadPrivateGroup);
-    spreadpg = string(spreadPrivateGroup);
-    stringstream errorString;
+    int ret = SP_connect(this->spreadname.c_str(), 0, 0, 0, &this->con, spreadPrivateGroup);
+    this->spreadpg = std::string(spreadPrivateGroup);
+    std::stringstream errorString;
     if (ret != ACCEPT_SESSION) {
         errorString << "Error connecting to '" << spreadname << "': ";
         switch (ret) {
@@ -130,32 +130,32 @@ void SpreadConnection::activate() {
     } else {
         RSCDEBUG(logger, "success, private group id is " << spreadpg);
     }
-    RSCINFO(logger, "connected to spread daemon");
+    RSCINFO(this->logger, "connected to spread daemon");
 
-    connected = true;
+    this->connected = true;
 
 }
 
 void SpreadConnection::deactivate() {
 
-    if (!connected) {
+    if (!this->connected) {
         throw rsc::misc::IllegalStateException("Connection is not active.");
     }
     // we can safely ignore errors here since there is no way to recover any
     // of them
-    SP_disconnect(con);
+    SP_disconnect(this->con);
 
-    connected = false;
+    this->connected = false;
 
 }
 
 bool SpreadConnection::isActive() {
-    return connected;
+    return this->connected;
 }
 
 void SpreadConnection::receive(SpreadMessagePtr sm) {
 
-    if (!connected) {
+    if (!this->connected) {
         throw rsc::misc::IllegalStateException("Connection is not active.");
     }
 
@@ -167,14 +167,13 @@ void SpreadConnection::receive(SpreadMessagePtr sm) {
     int16 messType;
     int dummyEndianMismatch;
     char buf[SPREAD_MAX_MESSLEN];
-    int ret = SP_receive(con, &serviceType, sender, SPREAD_MAX_GROUPS,
-            &numGroups, retGroups, &messType, &dummyEndianMismatch,
-            SPREAD_MAX_MESSLEN, buf);
+    int ret = SP_receive(this->con, &serviceType, sender, SPREAD_MAX_GROUPS,
+                         &numGroups, retGroups, &messType, &dummyEndianMismatch,
+                         SPREAD_MAX_MESSLEN, buf);
 
     // check for errors
     if (ret < 0) {
-
-        string err;
+        std::string err;
         switch (ret) {
         case ILLEGAL_SESSION:
             err = "spread receive error: mbox given to receive on was illegal";
@@ -203,25 +202,26 @@ void SpreadConnection::receive(SpreadMessagePtr sm) {
     // handle normal messages
     if (Is_regular_mess(serviceType)) {
 
-        RSCDEBUG(logger, "regular spread message received");
+        RSCDEBUG(this->logger, "regular spread message received");
 
         // cancel if requested
-        if (numGroups == 1 && string(retGroups[0]) == string(spreadpg)) {
+        if (numGroups == 1 &&
+            std::string(retGroups[0]) == std::string(this->spreadpg)) {
             throw boost::thread_interrupted();
         }
 
         sm->setType(SpreadMessage::REGULAR);
-        sm->setData(string(buf, ret));
+        sm->setData(std::string(buf, ret));
         if (numGroups < 0) {
             // TODO check whether we shall implement a best effort strategy here
-            RSCWARN(logger,
+            RSCWARN(this->logger,
                     "error during message reception, group array too large, requested size "
                     << " configured size " << SPREAD_MAX_GROUPS);
         }
         for (int i = 0; i < numGroups; i++) {
             if (retGroups[i] != NULL) {
-                string group = string(retGroups[i]);
-                RSCDEBUG(logger,
+                std::string group = std::string(retGroups[i]);
+                RSCDEBUG(this->logger,
                         "received message, addressed at group with name "
                         << group);
                 sm->addGroup(group);
@@ -232,16 +232,18 @@ void SpreadConnection::receive(SpreadMessagePtr sm) {
         // this will currently never happen as we do not want to have membership messages
         // and this message does not contain any contents
 
-        RSCINFO(logger, "received spread membership message type");
+        RSCINFO(this->logger, "received spread membership message type");
         sm->setType(SpreadMessage::MEMBERSHIP);
 
     } else {
 
-        RSCFATAL(logger, "received unknown spread message type with code " << serviceType);
+        RSCFATAL(this->logger,
+                 "received unknown spread message type with code "
+                 << serviceType);
         assert(false);
         throw CommException(
                 "Received a message that is neither membership nor data message. "
-                    "This should never happen according to the spread documentation.");
+                "This should never happen according to the spread documentation.");
 
     }
 
@@ -250,7 +252,7 @@ void SpreadConnection::receive(SpreadMessagePtr sm) {
 void SpreadConnection::send(const SpreadMessage& msg) {
 
     // TODO check message size, if larger than ~100KB throw exception
-    if (!connected) {
+    if (!this->connected) {
         throw rsc::misc::IllegalStateException("Connection is not active.");
     }
 
@@ -271,7 +273,7 @@ void SpreadConnection::send(const SpreadMessage& msg) {
     if (groups.size() == 1) { // use SP_multicast
         const std::string& group = *groups.begin();
         assert(group.size() < MAX_GROUP_NAME);
-        ret = SP_multicast(con, msg.getQOS(), group.c_str(), 0,
+        ret = SP_multicast(this->con, msg.getQOS(), group.c_str(), 0,
                            data.size(), data.c_str());
     } else { // use SP_multigroup_multicast
         char groupNames[SPREAD_MAX_GROUPS][MAX_GROUP_NAME];
@@ -290,7 +292,7 @@ void SpreadConnection::send(const SpreadMessage& msg) {
 
     if (ret < 0) {
 
-        stringstream err;
+        std::stringstream err;
         switch (ret) {
         case ILLEGAL_SESSION:
             err << "Illegal Session";
@@ -314,7 +316,7 @@ void SpreadConnection::send(const SpreadMessage& msg) {
 
 void SpreadConnection::interruptReceive() {
 
-    if (!connected) {
+    if (!this->connected) {
         throw rsc::misc::IllegalStateException("Connection is not active.");
     }
 
@@ -323,18 +325,18 @@ void SpreadConnection::interruptReceive() {
     boost::mutex::scoped_lock lock(this->mutex);
 #endif
 
-    SP_multicast(con, RELIABLE_MESS, spreadpg.c_str(), 0, 0, 0);
+    SP_multicast(this->con, RELIABLE_MESS, this->spreadpg.c_str(), 0, 0, 0);
 
 }
 
 mailbox* SpreadConnection::getMailbox() {
-    if (!connected) {
+    if (!this->connected) {
         throw rsc::misc::IllegalStateException("Connection is not active.");
     }
-    return& con;
+    return &this->con;
 }
 
-string defaultHost() {
+std::string defaultHost() {
     return "localhost";
 }
 
