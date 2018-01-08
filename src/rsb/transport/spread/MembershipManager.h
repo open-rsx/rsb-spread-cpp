@@ -3,7 +3,7 @@
  * This file is part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2013-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -25,38 +25,29 @@
  *
  * ============================================================ */
 
-#include "SpreadGroup.h"
+#pragma once
 
 #include <map>
 #include <string>
 
 #include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
-
-#include <rsc/logging/Logger.h>
 
 #include "SpreadConnection.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 
-#pragma once
-
 namespace rsb {
 namespace transport {
 namespace spread {
-
-typedef std::map<std::string, std::pair<SpreadGroupPtr, int> > GroupMap;
 
 /**
  * Reference counting class for Spread group memberships.
  *
  * @author swrede
- * @todo think about adding SpreadConnectionPtr as a member, offering
- *       methods that operate on this connection only
  */
 class RSBSPREAD_EXPORT MembershipManager {
 public:
-    MembershipManager();
+    MembershipManager(SpreadConnectionPtr connection);
     virtual ~MembershipManager();
 
     /**
@@ -64,9 +55,8 @@ public:
      * and increments reference count for this group by one.
      *
      * @param group group name to join
-     * @param s spread connection to join on
      */
-    void join(std::string group, SpreadConnectionPtr s);
+    void join(const std::string& group);
 
     /**
      * Decrements the reference count for the given Spread
@@ -74,17 +64,15 @@ public:
      * drops to zero, the corresponding Spread group is left.
      *
      * @param group group name to leave
-     * @param s spread connection to leave on
      */
-    void leave(std::string group, SpreadConnectionPtr s);
+    void leave(const std::string& group);
 
 private:
-    rsc::logging::LoggerPtr logger;
-    boost::recursive_mutex groupsMutex;
-    boost::shared_ptr<GroupMap> groups;
-};
+    typedef std::map<std::string, unsigned int> GroupMap;
 
-typedef boost::shared_ptr<MembershipManager> MembershipManagerPtr;
+    SpreadConnectionPtr connection;
+    GroupMap            groups;
+};
 
 }
 }

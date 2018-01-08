@@ -24,8 +24,6 @@
  *
  * ============================================================ */
 
-#include <iostream>
-
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
@@ -33,31 +31,30 @@
 
 #include "testconfig.h"
 
-using namespace std;
-
 using namespace rsb::transport::spread;
 
 using namespace testing;
 
 TEST(MembershipManagerTest, testRoundtrip)
 {
-    MembershipManagerPtr mm(new MembershipManager());
     // TODO convert this to a mock-only test case
     SpreadConnectionPtr sp(
             new SpreadConnection(defaultHost(), SPREAD_PORT));
     sp->activate();
 
-    ASSERT_NO_THROW(mm->join("a",sp));
-    mm->join("a",sp);
+    MembershipManager mm(sp);
+
+    ASSERT_NO_THROW(mm.join("a"));
+    mm.join("a");
     // join a different group
-    mm->join("b",sp);
+    mm.join("b");
     // leave it
-    mm->leave("b",sp);
+    mm.leave("b");
     // leave a
-    mm->leave("a",sp);
-    mm->leave("a",sp);
+    mm.leave("a");
+    mm.leave("a");
     // re-join a previously left group
-    mm->join("b",sp);
+    mm.join("b");
     // left b as well
-    ASSERT_NO_THROW(mm->leave("b",sp));
+    ASSERT_NO_THROW(mm.leave("b"));
 }

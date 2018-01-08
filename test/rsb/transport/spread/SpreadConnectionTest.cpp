@@ -55,8 +55,8 @@ TEST(SpreadConnectionTest, testErrorOnBufferSaturation)
     receiveConnection->activate();
 
     const string groupName = "dasdasd";
-    MembershipManager manager;
-    manager.join(groupName, receiveConnection);
+    MembershipManager manager(receiveConnection);
+    manager.join(groupName);
 
     // fill the buffer
     SpreadMessage message(SpreadMessage::REGULAR);

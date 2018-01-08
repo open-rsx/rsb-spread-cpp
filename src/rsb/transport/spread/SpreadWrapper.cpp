@@ -3,7 +3,7 @@
  * This file is part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2012, 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2012-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -60,8 +60,8 @@ const SpreadWrapper::QoSMap SpreadWrapper::qosMapping =
         SpreadWrapper::buildQoSMapping();
 
 SpreadWrapper::SpreadWrapper(SpreadConnectionPtr connection) :
-        logger(Logger::getLogger("rsb.transport.spread.SpreadWrapper")), activated(
-                false), con(connection), memberships(MembershipManagerPtr(new MembershipManager())) {
+        logger(Logger::getLogger("rsb.transport.spread.SpreadWrapper")),
+        activated(false), con(connection), memberships(connection) {
     setQualityOfServiceSpecs(QualityOfServiceSpec());
     RSCDEBUG(logger, "New instance created");
 }
@@ -81,17 +81,17 @@ void SpreadWrapper::deactivate() {
     if (this->con->isActive()) {
         this->con->deactivate();
     }
-    // memberships->leaveAll();
+    // this->memberships.leaveAll();
     RSCTRACE(logger, "deactivate() finished"); // << *id);
     this->activated = false;
 }
 
 void SpreadWrapper::join(const string& name) {
-    this->memberships->join(name, this->con);
+    this->memberships.join(name);
 }
 
 void SpreadWrapper::leave(const string& name) {
-    this->memberships->leave(name, this->con);
+    this->memberships.leave(name);
 }
 
 void SpreadWrapper::send(const SpreadMessage& msg) {
