@@ -3,7 +3,7 @@
  * This file is part of the rsb-spread project
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2013, 2015, 2017 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2013-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -145,13 +145,6 @@ public:
     bool isActive();
 
     /**
-     * Returns number of messages sent.
-     *
-     * @return number of sent messages
-     */
-    unsigned long getMsgCount();
-
-    /**
      * Returns the internally used mailbox for other low-level functions.
      *
      * @return mailbox
@@ -188,10 +181,6 @@ private:
      * Private name of this connection.
      */
     std::string spreadpg;
-    /**
-     * Number of message sent via this connection.
-     */
-    unsigned long msgCount;
 
 #if defined WIN32 // see comment in SpreadConnection::send
     boost::mutex mutex;

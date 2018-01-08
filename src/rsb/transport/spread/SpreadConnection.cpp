@@ -3,7 +3,7 @@
  * This file is a part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2013, 2015, 2017 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2013-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -55,13 +55,13 @@ SpreadConnection::SpreadConnection(const string& host, unsigned int port) :
     logger(Logger::getLogger("rsb.transport.spread.SpreadConnection")), connected(false),
     host(host), port(port),
 #ifdef WIN32
-    spreadname(str(format("%1%@%2%") % port % host)),
+    spreadname(str(format("%1%@%2%") % port % host))
 #else
     spreadname((host == defaultHost())
                ? lexical_cast<string>(port)
-               : str(format("%1%@%2%") % port % host)),
+               : str(format("%1%@%2%") % port % host))
 #endif
-    msgCount(0) {
+    {
     RSCDEBUG(logger, "instantiated spread connection"
              << " to spread daemon at " << spreadname);
 }
@@ -288,9 +288,6 @@ void SpreadConnection::send(const SpreadMessage& msg) {
             data.size(), data.c_str());
     }
 
-    // TODO shouldn't msgCount be incremented only in case of success?
-    ++msgCount;
-
     if (ret < 0) {
 
         stringstream err;
@@ -328,10 +325,6 @@ void SpreadConnection::interruptReceive() {
 
     SP_multicast(con, RELIABLE_MESS, spreadpg.c_str(), 0, 0, 0);
 
-}
-
-unsigned long SpreadConnection::getMsgCount() {
-    return msgCount;
 }
 
 mailbox* SpreadConnection::getMailbox() {
