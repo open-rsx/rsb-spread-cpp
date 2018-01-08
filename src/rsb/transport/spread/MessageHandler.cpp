@@ -2,7 +2,7 @@
  *
  * This file is part of the rsb-spread project.
  *
- * Copyright (C) 2012, 2013 Jan Moringen <jmoringe@techfak.uni-bielfeld.de>
+ * Copyright (C) 2012-2018 Jan Moringen <jmoringe@techfak.uni-bielfeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -60,7 +60,7 @@ EventPtr MessageHandler::processMessage(SpreadMessagePtr message) {
 
     // Deserialize notification fragment from Spread message.
     FragmentedNotificationPtr fragment(new FragmentedNotification());
-    if (!fragment->ParseFromString(message->getDataAsString())) {
+    if (!fragment->ParseFromString(message->getData())) {
         throw CommException("Failed to parse notification in pbuf format");
     }
 

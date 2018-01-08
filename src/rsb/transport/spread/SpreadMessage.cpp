@@ -3,7 +3,7 @@
  * This file is part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2013-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -29,8 +29,6 @@
 
 #include <stdexcept>
 
-#include <string.h>
-
 #include <rsc/logging/Logger.h>
 
 #include <sp.h>
@@ -55,77 +53,62 @@ SpreadMessage::SpreadMessage(const Type& mt) :
 }
 
 SpreadMessage::SpreadMessage(const string& d) :
-    data(d), type(OTHER), qos(UNRELIABLE) {
+    type(OTHER), qos(UNRELIABLE), data(d) {
 }
 
 SpreadMessage::SpreadMessage(const char* buf) :
-    data(buf), type(OTHER), qos(UNRELIABLE) {
+    type(OTHER), qos(UNRELIABLE), data(buf) {
 }
 
 SpreadMessage::~SpreadMessage() {
 }
 
-void SpreadMessage::setData(const std::string& doc) {
-    data = doc;
-}
-
-void SpreadMessage::setData(const char* buf) {
-    data = string(buf);
-}
-
-string SpreadMessage::getDataAsString() const {
-    return data;
-}
-
-const char* SpreadMessage::getData() const {
-    return data.c_str();
-}
-
-int SpreadMessage::getSize() const {
-    return data.length();
-}
-
-void SpreadMessage::setType(Type mt) {
-    type = mt;
-}
-
 SpreadMessage::Type SpreadMessage::getType() const {
-    return type;
+    return this->type;
 }
 
-void SpreadMessage::addGroup(const std::string& name) {
-    if (strlen(name.c_str()) > MAX_GROUP_NAME - 1) {
-        throw invalid_argument(
-                "Group name '" + name + "' is too long for spread.");
-    }
-    groups.push_back(name);
-}
-
-unsigned int SpreadMessage::getGroupCount() const {
-    return groups.size();
-}
-
-list<string>::const_iterator SpreadMessage::getGroupsBegin() const {
-    return groups.begin();
-}
-
-list<string>::const_iterator SpreadMessage::getGroupsEnd() const {
-    return groups.end();
+void SpreadMessage::setType(Type type) {
+    this->type = type;
 }
 
 SpreadMessage::QOS SpreadMessage::getQOS() const {
-    return qos;
+    return this->qos;
 }
 
 void SpreadMessage::setQOS(const QOS& qos) {
     this->qos = qos;
 }
 
-void SpreadMessage::reset() {
-    type = OTHER;
-    data.clear();
-    qos = UNRELIABLE;
-    groups.clear();
+const std::string& SpreadMessage::getData() const {
+    return this->data;
+}
+
+std::string& SpreadMessage::mutableData() {
+    return this->data;
+}
+
+void SpreadMessage::setData(const std::string& data) {
+    this->data = data;
+}
+
+void SpreadMessage::setData(const char* buf) {
+    this->data = std::string(buf);
+}
+
+int SpreadMessage::getSize() const {
+    return data.length();
+}
+
+const std::set<std::string>& SpreadMessage::getGroups() const {
+    return this->groups;
+}
+
+void SpreadMessage::addGroup(const std::string& name) {
+    if (name.size() > MAX_GROUP_NAME - 1) {
+        throw std::invalid_argument(
+                "Group name '" + name + "' is too long for spread.");
+    }
+    this->groups.insert(name);
 }
 
 }

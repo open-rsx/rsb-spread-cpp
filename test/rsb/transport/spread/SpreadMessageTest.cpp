@@ -50,7 +50,7 @@ TEST(SpreadMessageTest, testConstruction)
         EXPECT_EQ(SpreadMessage::OTHER, m.getType());
         EXPECT_EQ(SpreadMessage::UNRELIABLE, m.getQOS());
         EXPECT_EQ(string(""), string(m.getData()));
-        EXPECT_EQ(size_t(0), m.getGroupCount());
+        EXPECT_TRUE(m.getGroups().empty());
     }
 
     {
@@ -58,7 +58,7 @@ TEST(SpreadMessageTest, testConstruction)
         EXPECT_EQ(SpreadMessage::MEMBERSHIP, m.getType());
         EXPECT_EQ(SpreadMessage::UNRELIABLE, m.getQOS());
         EXPECT_EQ(string(""), string(m.getData()));
-        EXPECT_EQ(size_t(0), m.getGroupCount());
+        EXPECT_TRUE(m.getGroups().empty());
     }
 
     {
@@ -66,7 +66,7 @@ TEST(SpreadMessageTest, testConstruction)
         EXPECT_EQ(SpreadMessage::OTHER, m.getType());
         EXPECT_EQ(SpreadMessage::UNRELIABLE, m.getQOS());
         EXPECT_EQ(string("data"), string(m.getData()));
-        EXPECT_EQ(size_t(0), m.getGroupCount());
+        EXPECT_TRUE(m.getGroups().empty());
     }
 
     {
@@ -75,26 +75,7 @@ TEST(SpreadMessageTest, testConstruction)
         EXPECT_EQ(SpreadMessage::OTHER, m.getType());
         EXPECT_EQ(SpreadMessage::UNRELIABLE, m.getQOS());
         EXPECT_EQ(string(data), string(m.getData()));
-        EXPECT_EQ(size_t(0), m.getGroupCount());
+        EXPECT_TRUE(m.getGroups().empty());
     }
-
-}
-
-TEST(SpreadMessageTest, testReset)
-{
-
-    SpreadMessage m;
-    m.setType(SpreadMessage::MEMBERSHIP);
-    m.setQOS(SpreadMessage::UNRELIABLE);
-    m.setData("foooo");
-    m.addGroup("blar");
-    m.addGroup("blaradsasd");
-
-    m.reset();
-
-    EXPECT_EQ(SpreadMessage::OTHER, m.getType());
-    EXPECT_EQ(SpreadMessage::UNRELIABLE, m.getQOS());
-    EXPECT_EQ(string(""), string(m.getData()));
-    EXPECT_EQ(size_t(0), m.getGroupCount());
 
 }

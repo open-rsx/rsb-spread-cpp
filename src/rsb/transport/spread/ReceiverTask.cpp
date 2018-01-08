@@ -3,7 +3,7 @@
  * This file is part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2013-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -84,7 +84,7 @@ void ReceiverTask::execute() {
         }
 
         FragmentedNotificationPtr notification(new FragmentedNotification());
-        if (!notification->ParseFromString(message->getDataAsString())) {
+        if (!notification->ParseFromString(message->getData())) {
             throw CommException("Failed to parse notification in pbuf format");
         }
 

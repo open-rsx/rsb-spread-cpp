@@ -157,26 +157,26 @@ void OutConnector::handle(EventPtr event) {
             fragments.begin(); fragmentIt != fragments.end(); ++fragmentIt) {
 
         // serialize to spread message
-        string serializedMessageData;
-        if (!(*fragmentIt)->SerializeToString(&serializedMessageData)) {
+        SpreadMessage message;
+        if (!(*fragmentIt)->SerializeToString(&message.mutableData())) {
             throw ProtocolException("Failed to write notification to stream");
         }
-        SpreadMessage spreadMessage(serializedMessageData);
+
 
         // send message to appropriate groups
         const vector<string>& groupNames = connector->makeGroupNames(
                 *event->getScopePtr());
         for (vector<string>::const_iterator groupIt = groupNames.begin();
                 groupIt != groupNames.end(); ++groupIt) {
-            spreadMessage.addGroup(*groupIt);
+            message.addGroup(*groupIt);
         }
-        spreadMessage.setQOS(this->connector->getMessageQoS());
+        message.setQOS(this->connector->getMessageQoS());
 
         RSCTRACE(
                 logger,
-                "This is the serialized message size before send: " << spreadMessage.getSize());
+                "This is the serialized message size before send: " << message.getSize());
 
-        this->connector->send(spreadMessage);
+        this->connector->send(message);
         // TODO implement queuing or throw messages away?
         // TODO maybe return exception with msg that was not sent
         // TODO especially important to fulfill QoS specs

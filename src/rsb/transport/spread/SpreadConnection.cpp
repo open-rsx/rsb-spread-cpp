@@ -28,7 +28,6 @@
 #include "SpreadConnection.h"
 
 #include <iostream>
-#include <string.h>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
@@ -160,8 +159,6 @@ void SpreadConnection::receive(SpreadMessagePtr sm) {
         throw rsc::misc::IllegalStateException("Connection is not active.");
     }
 
-    sm->reset();
-
     // read from Spread multicast group
     int serviceType;
     int numGroups;
@@ -236,7 +233,7 @@ void SpreadConnection::receive(SpreadMessagePtr sm) {
         // and this message does not contain any contents
 
         RSCINFO(logger, "received spread membership message type");
-        sm.reset(new SpreadMessage(SpreadMessage::MEMBERSHIP));
+        sm->setType(SpreadMessage::MEMBERSHIP);
 
     } else {
 
@@ -257,8 +254,10 @@ void SpreadConnection::send(const SpreadMessage& msg) {
         throw rsc::misc::IllegalStateException("Connection is not active.");
     }
 
-    const unsigned int groupCount = msg.getGroupCount();
-    if (groupCount == 0) {
+    const std::string& data = msg.getData();
+    const std::set<std::string>& groups = msg.getGroups();
+    if (groups.empty()) {
+        assert(false);
         throw CommException("Group information missing in message");
     }
 
@@ -269,27 +268,24 @@ void SpreadConnection::send(const SpreadMessage& msg) {
 #endif
 
     int ret;
-    if (groupCount == 1) {
-        // use SP_multicast
-        string group = *msg.getGroupsBegin();
-        RSCDEBUG(logger, "sending message to group with name " << group);
-        ret = SP_multicast(con, msg.getQOS(), group.c_str(), 0, msg.getSize(),
-                msg.getData());
-    } else {
-        // use SP_multigroup_multicast
-        char* groups = new char[groupCount * MAX_GROUP_NAME];
-        memset(groups, 0, groupCount * MAX_GROUP_NAME);
-        int j = 0;
-        for (list<string>::const_iterator it = msg.getGroupsBegin(); it
-                != msg.getGroupsEnd(); ++it) {
-            string group = *it;
-            strcpy(groups + j * MAX_GROUP_NAME, group.c_str());
-            j++;
+    if (groups.size() == 1) { // use SP_multicast
+        const std::string& group = *groups.begin();
+        assert(group.size() < MAX_GROUP_NAME);
+        ret = SP_multicast(con, msg.getQOS(), group.c_str(), 0,
+                           data.size(), data.c_str());
+    } else { // use SP_multigroup_multicast
+        char groupNames[SPREAD_MAX_GROUPS][MAX_GROUP_NAME];
+        int i = 0;
+        for (std::set<std::string>::const_iterator it
+                 = groups.begin(); it != groups.end(); ++it, ++i) {
+            assert(it->size() < MAX_GROUP_NAME);
+            char* end = copy(it->begin(), it->end(), groupNames[i]);
+            *end = '\0';
         }
-        ret = SP_multigroup_multicast(con, msg.getQOS(), groupCount,
-                (const char(*)[MAX_GROUP_NAME]) groups, 0, msg.getSize(),
-                msg.getData());
-        delete[] groups;
+        ret = SP_multigroup_multicast(
+            con, msg.getQOS(),
+            groups.size(), (const char(*)[MAX_GROUP_NAME]) groupNames, 0,
+            data.size(), data.c_str());
     }
 
     // TODO shouldn't msgCount be incremented only in case of success?

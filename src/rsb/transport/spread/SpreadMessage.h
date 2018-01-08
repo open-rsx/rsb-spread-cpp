@@ -3,7 +3,7 @@
  * This file is part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2013-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -28,7 +28,7 @@
 #pragma once
 
 #include <string>
-#include <list>
+#include <set>
 
 #include <boost/shared_ptr.hpp>
 
@@ -42,12 +42,15 @@ namespace spread {
  * Default message QOS for sending is RELIABLE.
  *
  * @author swrede
+ * @author jmoringe
  */
 class RSBSPREAD_EXPORT SpreadMessage {
 public:
 
     enum Type {
-        REGULAR = 0x0001, MEMBERSHIP = 0x0002, OTHER = 0xFFFF,
+        REGULAR    = 0x0001,
+        MEMBERSHIP = 0x0002,
+        OTHER      = 0xFFFF,
     };
 
     /**
@@ -58,11 +61,11 @@ public:
      */
     enum QOS {
         UNRELIABLE = 0x00000001,
-        RELIABLE = 0x00000002,
-        FIFO = 0x00000004,
-        CAUSAL = 0x00000008,
-        AGREED = 0x00000010,
-        SAFE = 0x00000020
+        RELIABLE   = 0x00000002,
+        FIFO       = 0x00000004,
+        CAUSAL     = 0x00000008,
+        AGREED     = 0x00000010,
+        SAFE       = 0x00000020
     };
 
     /**
@@ -96,32 +99,26 @@ public:
 
     virtual ~SpreadMessage();
 
-    void setData(const std::string& doc);
-    void setData(const char* d);
-    std::string getDataAsString() const;
-    const char* getData() const;
-    int getSize() const;
-    SpreadMessage::Type getType() const;
-    void setType(Type mt);
+    Type getType() const;
+    void setType(Type type);
+
     QOS getQOS() const;
     void setQOS(const QOS& qos);
 
+    const std::string& getData() const;
+    std::string& mutableData();
+    void setData(const std::string& data);
+    void setData(const char* d);
+
+    int getSize() const;
+
+    const std::set<std::string>& getGroups() const;
     void addGroup(const std::string& name);
-    unsigned int getGroupCount() const;
-    std::list<std::string>::const_iterator getGroupsBegin() const;
-    std::list<std::string>::const_iterator getGroupsEnd() const;
-
-    /**
-     * Resets this message to a message of type #OTHER with no contents and
-     * groups.
-     */
-    void reset();
-
 private:
-    std::string data;
-    std::list<std::string> groups;
-    Type type;
-    QOS qos;
+    Type                  type;
+    QOS                   qos;
+    std::string           data;
+    std::set<std::string> groups;
 };
 
 typedef boost::shared_ptr<SpreadMessage> SpreadMessagePtr;
