@@ -3,7 +3,7 @@
  * This file is part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2012, 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2012-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -29,7 +29,9 @@
 
 #include <rsc/threading/ThreadedTaskExecutor.h>
 
-#include <rsb/Scope.h>
+#include <rsb/MetaData.h>
+
+#include "ReceiverTask.h"
 
 using namespace std;
 
@@ -37,21 +39,34 @@ using namespace rsc::logging;
 using namespace rsc::runtime;
 using namespace rsc::threading;
 
-using namespace rsb::eventprocessing;
 using namespace rsb::converter;
 
 namespace rsb {
 namespace transport {
 namespace spread {
 
+class InPushConnector::Handler : public ReceiverTask::Handler {
+public:
+    Handler(InPushConnector* connector) :
+        connector(connector) {
+    }
+
+    void handleIncomingNotification(rsb::protocol::NotificationPtr notification) {
+        this->connector->handleIncomingNotification(notification);
+    }
+
+    InPushConnector* connector;
+};
+
 InPushConnector::InPushConnector(const ConverterSelectionStrategyPtr converters,
-        SpreadConnectionPtr connection) :
-    transport::ConverterSelectingConnector<string>(converters), logger(
-            Logger::getLogger("rsb.transport.spread.InPushConnector")), active(false),
-            connector(new SpreadWrapper(connection)) {
-    this->exec = TaskExecutorPtr(new ThreadedTaskExecutor);
-    this->rec = boost::shared_ptr<ReceiverTask>(new ReceiverTask(
-            this->connector->getConnection(), HandlerPtr(), this));
+                                 SpreadConnectionPtr                 connection) :
+    transport::ConverterSelectingConnector<string>(converters),
+    logger(Logger::getLogger("rsb.transport.spread.InPushConnector")),
+    active(false),
+    connector(new SpreadWrapper(connection)),
+    exec(new ThreadedTaskExecutor),
+    handler(new Handler(this)) {
+    this->rec.reset(new ReceiverTask(this->connector->getConnection(), this->handler));
 }
 
 InPushConnector::~InPushConnector() {
@@ -74,7 +89,6 @@ void InPushConnector::activate() {
 
     // (re-)start threads
     this->exec->schedule(rec);
-    //this->exec->schedule(st);
     this->active = true;
 
     // check that scope is applied
@@ -104,17 +118,6 @@ void InPushConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& specs
     }
 }
 
-void InPushConnector::addHandler(HandlerPtr handler) {
-    assert(this->handlers.empty());
-    transport::InPushConnector::addHandler(handler);
-    this->rec->setHandler(this->handlers.front());
-}
-
-void InPushConnector::removeHandler(HandlerPtr handler) {
-    transport::InPushConnector::addHandler(handler);
-    this->rec->setHandler(HandlerPtr());
-}
-
 void InPushConnector::setScope(const Scope& scope) {
     if (!active) {
         activationScope.reset(new Scope(scope));
@@ -125,6 +128,33 @@ void InPushConnector::setScope(const Scope& scope) {
 
 void InPushConnector::setErrorStrategy(ParticipantConfig::ErrorStrategy strategy) {
     this->rec->setErrorStrategy(strategy);
+}
+
+void InPushConnector::handleIncomingNotification(rsb::protocol::NotificationPtr notification) {
+
+    EventPtr event(new Event());
+
+    // TODO fix error handling, see #796
+    try {
+        ConverterPtr converter = getConverter(notification->wire_schema());
+        AnnotatedData deserialized
+            = converter->deserialize(notification->wire_schema(),
+                                     notification->data());
+
+        fillEvent(event, *notification, deserialized.second, deserialized.first);
+
+        event->mutableMetaData().setReceiveTime();
+
+        for (std::list<eventprocessing::HandlerPtr>::iterator it = this->handlers.begin();
+             it != this->handlers.end(); ++it) {
+            (*it)->handle(event);
+        }
+    } catch (const std::exception& ex) {
+        RSCWARN(this->logger, "InPushConnector::handleIncomingNotification caught std exception: " << ex.what() );
+    } catch (...) {
+        RSCWARN(this->logger, "InPushConnector::handleIncomingNotification caught unknown exception" );
+    }
+
 }
 
 }

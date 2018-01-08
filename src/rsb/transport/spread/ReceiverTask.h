@@ -3,7 +3,7 @@
  * This file is part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2012, 2013 Jan Moringen <jmoringe@techfak.uni-bielfeld.de>
+ * Copyright (C) 2012-2018 Jan Moringen <jmoringe@techfak.uni-bielfeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -27,28 +27,19 @@
 
 #pragma once
 
-#include <map>
+#include <boost/shared_ptr.hpp>
 
 #include <boost/thread.hpp>
 
 #include <rsc/logging/Logger.h>
 #include <rsc/threading/RepetitiveTask.h>
-#include <rsc/misc/UUID.h>
 
-#include <rsb/Event.h>
-
-#include <rsb/eventprocessing/Handler.h>
-
-#include <rsb/converter/Converter.h>
-#include <rsb/converter/Repository.h>
+#include <rsb/ParticipantConfig.h>
 
 #include <rsb/protocol/Notification.h>
 #include <rsb/protocol/FragmentedNotification.h>
 
-#include <rsb/transport/Connector.h>
-
 #include "SpreadConnection.h"
-#include "InPushConnector.h"
 #include "Assembly.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
@@ -56,8 +47,6 @@
 namespace rsb {
 namespace transport {
 namespace spread {
-
-class InPushConnector;
 
 /**
  * A task that receives @c FragmentedNotifications from a @c
@@ -77,13 +66,17 @@ class InPushConnector;
 class RSBSPREAD_EXPORT ReceiverTask: public rsc::threading::RepetitiveTask {
 public:
 
-    ReceiverTask(SpreadConnectionPtr         s,
-                 eventprocessing::HandlerPtr handler,
-                 InPushConnector*            connector);
+    class Handler {
+    public:
+        virtual void handleIncomingNotification(rsb::protocol::NotificationPtr notification) = 0;
+    };
+    typedef boost::shared_ptr<Handler> HandlerPtr;
+
+    ReceiverTask(SpreadConnectionPtr connection,
+                 HandlerPtr          handler);
     virtual ~ReceiverTask();
 
     void execute();
-    void setHandler(eventprocessing::HandlerPtr handler);
 
     /**
      * Enables or disables pruning of messages and waits until the
@@ -115,18 +108,17 @@ private:
      * @param notification notification to handler
      * @return pointer to the joined notification
      */
-    rsb::protocol::NotificationPtr handleAndJoinFragmentedNotification(
-            protocol::FragmentedNotificationPtr notification);
+    void handleAndJoinFragmentedNotification(
+        protocol::FragmentedNotificationPtr notification);
 
-    rsc::logging::LoggerPtr logger;
+    rsc::logging::LoggerPtr          logger;
 
-    SpreadConnectionPtr con;
-    InPushConnector* connector;
+    SpreadConnectionPtr              connection;
 
-    AssemblyPoolPtr assemblyPool;
+    AssemblyPoolPtr                  assemblyPool;
 
-    eventprocessing::HandlerPtr handler;
-    boost::recursive_mutex handlerMutex;
+    HandlerPtr                       handler;
+    boost::recursive_mutex           handlerMutex;
 
     ParticipantConfig::ErrorStrategy errorStrategy;
 };

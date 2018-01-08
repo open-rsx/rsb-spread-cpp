@@ -26,19 +26,22 @@
 
 #pragma once
 
+#include <boost/shared_ptr.hpp>
+
 #include <string>
 
-#include <rsc/runtime/Properties.h>
-
 #include <rsc/threading/TaskExecutor.h>
+
+#include <rsb/protocol/Notification.h>
+
+#include <rsb/Scope.h>
 
 #include <rsb/transport/InPushConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
-#include "ReceiverTask.h"
+#include "SpreadWrapper.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
-#include "SpreadWrapper.h"
 
 namespace rsb {
 namespace transport {
@@ -53,11 +56,10 @@ class ReceiverTask;
  * @author jmoringe
  */
 class RSBSPREAD_EXPORT InPushConnector: public transport::InPushConnector,
-                                  public transport::ConverterSelectingConnector<std::string> {
-    friend class ReceiverTask;
+                                        public transport::ConverterSelectingConnector<std::string> {
 public:
     InPushConnector(ConverterSelectionStrategyPtr converters,
-            SpreadConnectionPtr connection);
+                    SpreadConnectionPtr           connection);
     virtual ~InPushConnector();
 
     void printContents(std::ostream& stream) const;
@@ -71,21 +73,23 @@ public:
 
     void setQualityOfServiceSpecs(const QualityOfServiceSpec& specs);
 
-    void addHandler(eventprocessing::HandlerPtr handler);
-    void removeHandler(eventprocessing::HandlerPtr handler);
-
     void setErrorStrategy(ParticipantConfig::ErrorStrategy strategy);
 
+    void handleIncomingNotification(rsb::protocol::NotificationPtr notification);
 private:
-    rsc::logging::LoggerPtr logger;
+    class Handler;
+    typedef boost::shared_ptr<Handler> HandlerPtr;
 
-    bool active;
+    rsc::logging::LoggerPtr         logger;
 
-    SpreadWrapperPtr connector;
-    boost::shared_ptr<Scope> activationScope;
+    bool                            active;
+
+    SpreadWrapperPtr                connector;
+    boost::shared_ptr<Scope>        activationScope;
 
     rsc::threading::TaskExecutorPtr exec;
     boost::shared_ptr<ReceiverTask> rec;
+    HandlerPtr                      handler;
 };
 
 }

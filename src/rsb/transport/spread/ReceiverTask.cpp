@@ -31,35 +31,21 @@
 #include <rsc/debug/DebugTools.h>
 
 #include <rsb/CommException.h>
-#include <rsb/MetaData.h>
-#include <rsb/EventId.h>
 
 #include <rsb/converter/Converter.h>
 
-#include "SpreadConnection.h"
-#include "InPushConnector.h"
-
 using namespace std;
-
-using namespace rsc::logging;
-
-using namespace rsb;
-using namespace rsb::eventprocessing;
-using namespace rsb::transport;
-using namespace rsb::protocol;
 
 namespace rsb {
 namespace transport {
 namespace spread {
 
-ReceiverTask::ReceiverTask(SpreadConnectionPtr s, HandlerPtr handler,
-        InPushConnector* connector) :
-        logger(rsc::logging::Logger::getLogger("rsb.transport.spread.ReceiverTask")), con(
-                s), connector(connector), assemblyPool(new AssemblyPool()), handler(
-                handler), errorStrategy(ParticipantConfig::ERROR_STRATEGY_PRINT) {
-
-    RSCTRACE(logger, "ReceiverTask::ReceiverTask, SpreadConnection: " << con);
-
+ReceiverTask::ReceiverTask(SpreadConnectionPtr connection,
+                           HandlerPtr          handler) :
+    logger(rsc::logging::Logger::getLogger("rsb.transport.spread.ReceiverTask")),
+    connection(connection), assemblyPool(new AssemblyPool()), handler(handler),
+    errorStrategy(ParticipantConfig::ERROR_STRATEGY_PRINT) {
+    RSCTRACE(logger, "ReceiverTask::ReceiverTask, SpreadConnection: " << this->connection);
 }
 
 ReceiverTask::~ReceiverTask() {
@@ -70,7 +56,7 @@ void ReceiverTask::execute() {
     try {
 
         SpreadMessagePtr message(new SpreadMessage(SpreadMessage::REGULAR));
-        con->receive(message);
+        this->connection->receive(message);
         if (!message) {
             throw CommException(
                     "Receiving a SpreadMessage returned a zero pointer, why?");
@@ -83,35 +69,29 @@ void ReceiverTask::execute() {
             return;
         }
 
-        FragmentedNotificationPtr notification(new FragmentedNotification());
+        rsb::protocol::FragmentedNotificationPtr notification
+            (new rsb::protocol::FragmentedNotification());
         if (!notification->ParseFromString(message->getData())) {
             throw CommException("Failed to parse notification in pbuf format");
         }
 
-        RSCTRACE(logger,
+        RSCTRACE(this->logger,
                  "Parsed event seqnum: " << notification->notification().event_id().sequence_number());
-        RSCTRACE(logger,
+        RSCTRACE(this->logger,
                  "Binary length: " << notification->notification().data().length());
-        RSCTRACE(logger,
+        RSCTRACE(this->logger,
                  "Number of split message parts: " << notification->num_data_parts());
-        RSCTRACE(logger,
+        RSCTRACE(this->logger,
                  "... received message part    : " << notification->data_part());
 
         // Build data from parts
-        NotificationPtr completeNotification =
-                handleAndJoinFragmentedNotification(notification);
-        if (completeNotification) {
-            RSCTRACE(logger,
-                     "ReceiverTask::execute fragmented notification joined, last message " << message);
-            notifyHandler(completeNotification);
-        }
-
+        handleAndJoinFragmentedNotification(notification);
     } catch (rsb::CommException& e) {
         // TODO QoS would not like swallowing the exception
         rsc::debug::DebugToolsPtr tools = rsc::debug::DebugTools::newInstance();
         switch (this->errorStrategy) {
         case ParticipantConfig::ERROR_STRATEGY_LOG:
-            RSCERROR(logger,
+            RSCERROR(this->logger,
                      "Error receiving spread message: " << e.what() << endl << tools->exceptionInfo(e) << "\nTerminating receiving new spread messages!");
             break;
         case ParticipantConfig::ERROR_STRATEGY_PRINT:
@@ -120,13 +100,13 @@ void ReceiverTask::execute() {
                  << "Terminating receiving new spread messages!" << endl;
             break;
         case ParticipantConfig::ERROR_STRATEGY_EXIT:
-            RSCFATAL(logger,
+            RSCFATAL(this->logger,
                      "Error receiving spread message: " << e.what() << endl << tools->exceptionInfo(e) << "\nTerminating the whole process as requested via configuration.");
             exit(1);
             break;
         default:
             assert(false);
-            RSCERROR(logger,
+            RSCERROR(this->logger,
                      "Error receiving spread message: " << e.what() << endl << tools->exceptionInfo(e) << "\nTerminating receiving new spread messages!");
             break;
         }
@@ -137,10 +117,10 @@ void ReceiverTask::execute() {
 
 }
 
-NotificationPtr ReceiverTask::handleAndJoinFragmentedNotification(
-        FragmentedNotificationPtr notification) {
+void ReceiverTask::handleAndJoinFragmentedNotification(
+    rsb::protocol::FragmentedNotificationPtr notification) {
 
-    NotificationPtr completeNotification;
+    rsb::protocol::NotificationPtr completeNotification;
 
     bool multiPartNotification = notification->num_data_parts() > 1;
     if (multiPartNotification) {
@@ -152,46 +132,14 @@ NotificationPtr ReceiverTask::handleAndJoinFragmentedNotification(
                         < rsb::protocol::FragmentedNotification
                         > (notification));
     }
-    return completeNotification;
 
-}
-
-void ReceiverTask::notifyHandler(NotificationPtr notification) {
-
-    EventPtr e(new Event());
-
-    // TODO fix error handling, see #796
-    try {
-        InPushConnector::ConverterPtr c = this->connector->getConverter(
-                notification->wire_schema());
-        AnnotatedData deserialized = c->deserialize(
-                notification->wire_schema(), notification->data());
-
-        fillEvent(e, *notification, deserialized.second, deserialized.first);
-
-        e->mutableMetaData().setReceiveTime();
-
-        boost::recursive_mutex::scoped_lock lock(handlerMutex);
-        if (this->handler) {
-            this->handler->handle(e);
-        } else {
-            RSCINFO(logger, "No handler");
-        }
-    } catch (const std::exception& ex) {
-        RSCWARN(logger, "ReceiverTask::notifyHandler caught std exception: " << ex.what() );
-    } catch (...) {
-        RSCWARN(logger, "ReceiverTask::notifyHandler caught unknown exception" );
+    if (completeNotification) {
+        this->handler->handleIncomingNotification(completeNotification);
     }
-
-}
-
-void ReceiverTask::setHandler(HandlerPtr handler) {
-    boost::recursive_mutex::scoped_lock lock(handlerMutex);
-    this->handler = handler;
 }
 
 void ReceiverTask::setPruning(const bool& pruning) {
-    assemblyPool->setPruning(pruning);
+    this->assemblyPool->setPruning(pruning);
 }
 
 void ReceiverTask::setErrorStrategy(ParticipantConfig::ErrorStrategy strategy) {
