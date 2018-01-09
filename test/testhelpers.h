@@ -26,6 +26,12 @@
 
 #pragma once
 
+#if defined(_WIN32)
+#include <windows.h>
+#else
+#include <stdlib.h>
+#endif
+
 #include <iostream>
 #include <ostream>
 #include <stdexcept>
@@ -44,6 +50,14 @@ inline void setupLogging() {
     rsc::logging::LoggerFactory::getInstance().reconfigure(
             rsc::logging::Logger::LEVEL_TRACE);
 
+}
+
+inline void disableExternalConfigFiles() {
+#if defined(_WIN32)
+    SetEnvironmentVariable("RSB_CONFIG_FILES", "%pwd");
+#else
+    setenv("RSB_CONFIG_FILES", "%pwd", 1);
+#endif
 }
 
 inline rsc::subprocess::SubprocessPtr startSpread() {

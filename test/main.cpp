@@ -37,6 +37,8 @@ using namespace testing;
 int main(int argc, char* argv[]) {
     srand(time(NULL));
 
+    disableExternalConfigFiles();
+
     AddGlobalTestEnvironment(new SpreadEnvironment);
 
     rsb::converter::registerDefaultConverters();
