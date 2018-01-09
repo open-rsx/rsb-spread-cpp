@@ -72,7 +72,7 @@ public:
      * @throw CommException error sending message
      */
     void send(const SpreadMessage& msg);
-    void receive(SpreadMessagePtr msg);
+    void receive(SpreadMessage& msg);
 
     SpreadConnectionPtr getConnection();
 

@@ -53,14 +53,14 @@ MessageHandler::MessageHandler(ConverterSelectionStrategyPtr converters) :
 MessageHandler::~MessageHandler() {
 }
 
-EventPtr MessageHandler::processMessage(SpreadMessagePtr message) {
-    RSCDEBUG(logger, "new Spread message " << message);
+EventPtr MessageHandler::processMessage(const SpreadMessage& message) {
+    RSCDEBUG(logger, "new Spread message " << &message);
 
-    assert(message->getType() == SpreadMessage::REGULAR);
+    assert(message.getType() == SpreadMessage::REGULAR);
 
     // Deserialize notification fragment from Spread message.
     FragmentedNotificationPtr fragment(new FragmentedNotification());
-    if (!fragment->ParseFromString(message->getData())) {
+    if (!fragment->ParseFromString(message.getData())) {
         throw CommException("Failed to parse notification in pbuf format");
     }
 
@@ -79,7 +79,7 @@ EventPtr MessageHandler::processMessage(SpreadMessagePtr message) {
         return EventPtr();
     }
     RSCTRACE(logger,
-             "fragmented notification joined, last message " << message);
+             "fragmented notification joined, last message " << &message);
 
     // Convert notification payload.
     ConverterPtr converter = getConverter(notification->wire_schema());

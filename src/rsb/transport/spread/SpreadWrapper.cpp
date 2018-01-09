@@ -94,12 +94,12 @@ void SpreadWrapper::leave(const string& name) {
     this->memberships.leave(name);
 }
 
-void SpreadWrapper::send(const SpreadMessage& msg) {
-    this->con->send(msg);
+void SpreadWrapper::send(const SpreadMessage& message) {
+    this->con->send(message);
 }
 
-void SpreadWrapper::receive(SpreadMessagePtr msg) {
-    this->con->receive(msg);
+void SpreadWrapper::receive(SpreadMessage& message) {
+    this->con->receive(message);
 }
 
 SpreadWrapper::~SpreadWrapper() {

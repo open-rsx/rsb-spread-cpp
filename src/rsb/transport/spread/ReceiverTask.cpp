@@ -55,23 +55,19 @@ void ReceiverTask::execute() {
     // TODO Do performance optimization for data joining
     try {
 
-        SpreadMessagePtr message(new SpreadMessage(SpreadMessage::REGULAR));
+        SpreadMessage message(SpreadMessage::REGULAR);
         this->connection->receive(message);
-        if (!message) {
-            throw CommException(
-                    "Receiving a SpreadMessage returned a zero pointer, why?");
-        }
 
         RSCDEBUG(logger,
-                "ReceiverTask::execute new SpreadMessage received " << message);
+                "ReceiverTask::execute new SpreadMessage received " << &message);
 
-        if (message->getType() != SpreadMessage::REGULAR) {
+        if (message.getType() != SpreadMessage::REGULAR) {
             return;
         }
 
         rsb::protocol::FragmentedNotificationPtr notification
             (new rsb::protocol::FragmentedNotification());
-        if (!notification->ParseFromString(message->getData())) {
+        if (!notification->ParseFromString(message.getData())) {
             throw CommException("Failed to parse notification in pbuf format");
         }
 

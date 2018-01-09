@@ -218,7 +218,7 @@ void SpreadConnection::leave(const std::string& group) {
 
 }
 
-void SpreadConnection::receive(SpreadMessagePtr message) {
+void SpreadConnection::receive(SpreadMessage& message) {
 
     if (!this->connected) {
         throw rsc::misc::IllegalStateException("Connection is not active.");
@@ -270,8 +270,8 @@ void SpreadConnection::receive(SpreadMessagePtr message) {
             throw boost::thread_interrupted();
         }
 
-        message->setType(SpreadMessage::REGULAR);
-        message->setData(std::string(buf, ret));
+        message.setType(SpreadMessage::REGULAR);
+        message.setData(std::string(buf, ret));
         if (numGroups < 0) {
             // TODO check whether we shall implement a best effort strategy here
             RSCWARN(this->logger,
@@ -284,7 +284,7 @@ void SpreadConnection::receive(SpreadMessagePtr message) {
                 RSCDEBUG(this->logger,
                         "received message, addressed at group with name "
                         << group);
-                message->addGroup(group);
+                message.addGroup(group);
             }
         }
     } else if (Is_membership_mess(serviceType)) {
@@ -292,7 +292,7 @@ void SpreadConnection::receive(SpreadMessagePtr message) {
         // membership messages and this message does not contain any
         // contents.
         RSCINFO(this->logger, "received spread membership message type");
-        message->setType(SpreadMessage::MEMBERSHIP);
+        message.setType(SpreadMessage::MEMBERSHIP);
 
     } else {
         RSCFATAL(this->logger, "received unknown spread message type with code "

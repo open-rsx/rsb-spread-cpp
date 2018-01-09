@@ -68,7 +68,7 @@ TEST(SpreadConnectionTest, testErrorOnBufferSaturation)
 
     // read from the buffer that is flooded
     try {
-        SpreadMessagePtr receiveMessage(new SpreadMessage);
+        SpreadMessage receiveMessage;
         for (unsigned int i = 0; i < bufferSize; ++i) {
             receiveConnection->receive(receiveMessage);
         }
@@ -88,7 +88,7 @@ TEST(SpreadConnectionTest, testActivationStateChecks)
     sendMsg.addGroup("blubb");
     EXPECT_THROW(con.send(sendMsg), rsc::misc::IllegalStateException);
 
-    SpreadMessagePtr receiveMsg(new SpreadMessage);
+    SpreadMessage receiveMsg;
     EXPECT_THROW(con.receive(receiveMsg), rsc::misc::IllegalStateException);
 
     EXPECT_THROW(con.interruptReceive(), rsc::misc::IllegalStateException);
@@ -108,7 +108,7 @@ TEST(SpreadConnectionTest, testDeactivateDestructorNotRequired)
 void receiveTester(SpreadConnectionPtr con) {
 
     try {
-        SpreadMessagePtr msg(new SpreadMessage);
+        SpreadMessage msg;
         while (true) {
             con->receive(msg);
         }

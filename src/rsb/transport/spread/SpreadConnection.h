@@ -143,7 +143,7 @@ public:
      * @note not all readers in different threads receive all messages, one
      *       message is only received by one thread
      */
-    void receive(SpreadMessagePtr message);
+    void receive(SpreadMessage& message);
 
     /**
      * Sends @a message over the Spread ring.
