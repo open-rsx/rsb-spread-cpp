@@ -40,10 +40,6 @@
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 
-// forward declaration to avoid exposing sp.h with strange defines that prevent
-// other code from compiling
-typedef int mailbox;
-
 namespace rsb {
 namespace transport {
 namespace spread {
@@ -55,17 +51,18 @@ RSBSPREAD_EXPORT unsigned int defaultPort();
 /**
  * A wrapper class providing an object-oriented interface to the Spread API.
  *
- * @note this class is not thread-safe! Use it only single-threaded! The only
- *       exception to this rule is #interruptReceive. It can be used to kill an
- *       asynchronously operating receiver thread on the connection.
+ * @note This class is generally not thread-safe. The only exception
+ *       to this rule is #interruptReceive. It can be used to
+ *       terminate the receiver thread of the connection.
  *
  * @author swrede
  * @author jwienke
+ * @author jmoringe
  */
 class RSBSPREAD_EXPORT SpreadConnection {
 public:
-    SpreadConnection(const std::string& host   = defaultHost(),
-                     unsigned int port         = defaultPort());
+    SpreadConnection(const std::string& host = defaultHost(),
+                     unsigned int port       = defaultPort());
     virtual ~SpreadConnection();
 
     const std::string getTransportURL() const;
@@ -77,7 +74,14 @@ public:
     //@{
 
     /**
-     * Activates the connection and thereby connects to the spread daemon as
+     * Tells if this instance is connected to spread daemon.
+     *
+     * @return @c true if connected
+     */
+    bool isActive() const;
+
+    /**
+     * Activates the connection by connecting to the Spread daemon as
      * configured in the constructor.
      *
      * @throw CommException error connecting to the daemon
@@ -126,27 +130,29 @@ public:
     //@{
 
     /**
-     * Sends a message on spread.
+     * Receives the next message from this connection into @a message.
      *
-     * @param msg message to send
-     * @throw rsc::misc::IllegalStateException connection was not active
-     * @throw CommException communication error sending the message
-     */
-    void send(const SpreadMessage& msg);
-
-    /**
-     * Tries to receive the next message from this connection and blocks until
-     * it is available.
+     * Blocks until a message is available.
      *
-     * @param sm out parameter with the message to fill with the read contents
-     * @note not all readers in different threads receive all messages, one
-     *       message is only received by one thread
+     * @param message out parameter with the message to fill with the read contents
      * @throw rsc::misc::IllegalStateException connection was not active
      * @throw CommException communication error receiving a message
      * @throw boost::thread_interrupted if receiving was interrupted using
      *                                  #interruptReceive
+     *
+     * @note not all readers in different threads receive all messages, one
+     *       message is only received by one thread
      */
-    void receive(SpreadMessagePtr sm);
+    void receive(SpreadMessagePtr message);
+
+    /**
+     * Sends @a message over the Spread ring.
+     *
+     * @param message message to send
+     * @throw rsc::misc::IllegalStateException connection was not active
+     * @throw CommException communication error sending the message
+     */
+    void send(const SpreadMessage& message);
 
     //@}
 
@@ -162,45 +168,48 @@ public:
      */
     void interruptReceive();
 
-    /**
-     * Tells if this instance is connected to spread daemon.
-     *
-     * @return @c true if connected
-     */
-    bool isActive();
-
 private:
     rsc::logging::LoggerPtr logger;
+
     /**
-     * A flag to indicate whether we are connected to spread.
+     * A flag to indicate whether we are connected to Spread.
      */
     volatile bool connected;
+
     /**
-     * Handle to the internal spread connection.
-     */
-    mailbox con;
-    /**
-     * Host for the spread daemon.
+     * Host for the Spread daemon.
      */
     std::string host;
+
     /**
-     * Port for the spread daemon.
+     * Port for the Spread daemon.
      */
     unsigned int port;
+
     /**
-     * The name of the daemon. Can consists of port and host, e.g.
-     * 4803\@localhost or only a port. See SP_connect(3) man-page for
-     * details.
+     * The "name" of the Spread daemon.
+     *
+     * Can consists of port and host, e.g. 4803\@localhost or only a
+     * port. See SP_connect(3) man-page for details.
      */
-    std::string spreadname;
+    std::string daemonName;
+
+    /**
+     * Handle to the underlying Spread mailbox.
+     */
+    // Do not use Spread's mailbox type to avoid exposing sp.h with
+    // strange defines that prevent other code from compiling.
+    int mailbox;
+
     /**
      * Private name of this connection.
      */
-    std::string spreadpg;
+    std::string privateGroup;
 
 #if defined WIN32 // see comment in SpreadConnection::send
     boost::mutex mutex;
 #endif
+
 };
 
 typedef boost::shared_ptr<SpreadConnection> SpreadConnectionPtr;
