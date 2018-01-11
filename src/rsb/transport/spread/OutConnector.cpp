@@ -3,7 +3,7 @@
  * This file is a part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2013-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -97,93 +97,63 @@ void OutConnector::handle(EventPtr event) {
 
     event->mutableMetaData().setSendTime(rsc::misc::currentTimeMicros());
 
-    // create a list of all fragments required to send this event
-    vector<FragmentedNotificationPtr> fragments;
-
-    size_t curPos = 0;
-    unsigned int currentDataPart = 0;
-    // "currentDataPart == 0" is required for the case when wire.size() == 0
-    // This can happen, for example, with the "void" wire-schema.
-    while (curPos < wire.size() || currentDataPart == 0) {
-
-        FragmentedNotificationPtr notification(new FragmentedNotification);
-        fillNotificationId(*(notification->mutable_notification()),
-                event);
-
-        // when sending the first time, we need to transmit all meta data.
-        if (currentDataPart == 0) {
-            fillNotificationHeader(*(notification->mutable_notification()),
-                    event, wireSchema);
+    // Create a list of all fragments required to send this event in
+    // one or more Spread messages.
+    vector<rsb::protocol::FragmentedNotification> fragments;
+    for (unsigned int fragment = 0, offset = 0;
+         (fragment == 0) || (offset < wire.size());
+         ++fragment, offset += this->maxFragmentSize) {
+        // Allocate and populate a new fragment. When processing the
+        // first fragment, transmit all meta data.
+        fragments.resize(fragment + 1);
+        rsb::protocol::FragmentedNotification& fragmentNotification
+            = fragments.back();
+        fillNotificationId(*(fragmentNotification.mutable_notification()), event);
+        if (fragment == 0) {
+            fillNotificationHeader(*(fragmentNotification.mutable_notification()),
+                                   event, wireSchema);
         }
-        // Scale the data for this message with the size of the generated header
-        // and mandatory id fields in the notification
-        unsigned int headerByteSize = notification->ByteSize();
+
+        // Use remaining space in fragment for payload data.
+        unsigned int headerByteSize = fragmentNotification.ByteSize();
         assert(headerByteSize <= maxFragmentSize - minDataSpace);
         if (headerByteSize >= maxFragmentSize - minDataSpace) {
             throw ProtocolException(
-                    "The meta data of this event are too big for spread!");
+                    "The meta data of this event are too big for Spread!");
         }
         unsigned int maxDataPartSize = maxFragmentSize - headerByteSize;
 
-        // finally set the data information
-        string dataPart = wire.substr(curPos, maxDataPartSize);
-        curPos += maxDataPartSize;
+        string dataPart = wire.substr(offset, maxDataPartSize);
+        fragmentNotification.mutable_notification()->set_data(dataPart);
+        fragmentNotification.set_data_part(fragment);
 
-        notification->mutable_notification()->set_data(dataPart);
-        notification->set_data_part(currentDataPart);
-        // optimistic guess for the number of required fragments
-        notification->set_num_data_parts(1);
-
-        fragments.push_back(notification);
-
-        ++currentDataPart;
-
+        // Optimistic guess for the number of required fragments.
+        fragmentNotification.set_num_data_parts(1);
     }
 
-    // adapt num_data_parts field of each FragmentedNotification if we need more
-    // than one fragment
-    assert(!fragments.empty());
-    if (fragments.size() > 1) {
-        for (vector<FragmentedNotificationPtr>::iterator fragmentIt =
-                fragments.begin(); fragmentIt != fragments.end();
-                ++fragmentIt) {
-            (*fragmentIt)->set_num_data_parts(fragments.size());
-        }
+    // Send a message for each fragment.
+    SpreadMessage message;
+    message.setQOS(this->connector->getMessageQoS());
+    const std::vector<std::string>& groups
+        = connector->makeGroupNames(event->getScope());
+    for (std::vector<std::string>::const_iterator it = groups.begin();
+         it != groups.end(); ++it) {
+        message.addGroup(*it);
     }
 
-    // finally send all fragments
+    for (std::vector<FragmentedNotification>::iterator it
+             = fragments.begin(); it != fragments.end(); ++it) {
+        it->set_num_data_parts(fragments.size());
 
-    for (vector<FragmentedNotificationPtr>::const_iterator fragmentIt =
-            fragments.begin(); fragmentIt != fragments.end(); ++fragmentIt) {
-
-        // serialize to spread message
-        SpreadMessage message;
-        if (!(*fragmentIt)->SerializeToString(&message.mutableData())) {
+        if (!(it->SerializeToString(&message.mutableData()))) {
             throw ProtocolException("Failed to write notification to stream");
         }
-
-
-        // send message to appropriate groups
-        const vector<string>& groupNames = connector->makeGroupNames(
-                *event->getScopePtr());
-        for (vector<string>::const_iterator groupIt = groupNames.begin();
-                groupIt != groupNames.end(); ++groupIt) {
-            message.addGroup(*groupIt);
-        }
-        message.setQOS(this->connector->getMessageQoS());
-
-        RSCTRACE(
-                logger,
-                "This is the serialized message size before send: " << message.getSize());
 
         this->connector->send(message);
         // TODO implement queuing or throw messages away?
         // TODO maybe return exception with msg that was not sent
         // TODO especially important to fulfill QoS specs
-        RSCDEBUG(logger, "event sent to spread");
-
     }
-
 }
 
 }
