@@ -49,11 +49,15 @@ namespace transport {
 namespace spread {
 
 OutConnector::OutConnector(ConverterSelectionStrategyPtr converters,
-        SpreadConnectionPtr connection, unsigned int maxFragmentSize) :
-        transport::ConverterSelectingConnector<string>(converters), logger(
-                Logger::getLogger("rsb.transport.spread.OutConnector")), active(
-                false), connector(new SpreadWrapper(connection)), maxFragmentSize(
-                maxFragmentSize), minDataSpace(5) {
+                           SpreadConnectionPtr           connection,
+                           unsigned int                  maxFragmentSize) :
+    transport::ConverterSelectingConnector<string>(converters),
+    logger(Logger::getLogger("rsb.transport.spread.OutConnector")),
+    active(false), connection(connection),
+    qosSpecs(QualityOfServiceSpec(QualityOfServiceSpec::ORDERED,
+                                  QualityOfServiceSpec::RELIABLE)),
+    messageQOS(SpreadMessage::FIFO),
+    maxFragmentSize(maxFragmentSize), minDataSpace(5) {
 }
 
 OutConnector::~OutConnector() {
@@ -63,28 +67,51 @@ OutConnector::~OutConnector() {
 }
 
 void OutConnector::printContents(ostream& stream) const {
-    stream << "connector = " << connector << ", active = " << active;
+    stream << "connection = " << connection << ", active = " << active;
 }
 
 const string OutConnector::getTransportURL() const {
-    return this->connector->getTransportURL();
+    return this->connection->getTransportURL();
 }
 
 void OutConnector::setScope(const Scope& /*scope*/) {
 }
 
 void OutConnector::activate() {
-    this->connector->activate();
+    this->connection->activate();
     this->active = true;
 }
 
 void OutConnector::deactivate() {
-    this->connector->deactivate();
+    this->connection->deactivate();
     this->active = false;
 }
 
 void OutConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& specs) {
-    this->connector->setQualityOfServiceSpecs(specs);
+    this->qosSpecs = specs;
+    switch (specs.getOrdering()) {
+    case QualityOfServiceSpec::UNORDERED:
+        switch (specs.getReliability()) {
+        case QualityOfServiceSpec::UNRELIABLE:
+            this->messageQOS = SpreadMessage::UNRELIABLE;
+            break;
+        case QualityOfServiceSpec::RELIABLE:
+            this->messageQOS = SpreadMessage::RELIABLE;
+            break;
+        };
+        break;
+    case QualityOfServiceSpec::ORDERED:
+        switch (specs.getReliability()) {
+        case QualityOfServiceSpec::UNRELIABLE:
+            this->messageQOS = SpreadMessage::FIFO;
+            break;
+        case QualityOfServiceSpec::RELIABLE:
+            this->messageQOS = SpreadMessage::FIFO;
+            break;
+
+        };
+        break;
+    }
 }
 
 void OutConnector::handle(EventPtr event) {
@@ -133,9 +160,9 @@ void OutConnector::handle(EventPtr event) {
 
     // Send a message for each fragment.
     SpreadMessage message;
-    message.setQOS(this->connector->getMessageQoS());
+    message.setQOS(this->messageQOS);
     const std::vector<std::string>& groups
-        = connector->makeGroupNames(event->getScope());
+        = this->groupNameCache.scopeToGroups(event->getScope());
     for (std::vector<std::string>::const_iterator it = groups.begin();
          it != groups.end(); ++it) {
         message.addGroup(*it);
@@ -149,7 +176,7 @@ void OutConnector::handle(EventPtr event) {
             throw ProtocolException("Failed to write notification to stream");
         }
 
-        this->connector->send(message);
+        this->connection->send(message);
         // TODO implement queuing or throw messages away?
         // TODO maybe return exception with msg that was not sent
         // TODO especially important to fulfill QoS specs

@@ -39,6 +39,8 @@ namespace rsb {
 namespace transport {
 namespace spread {
 
+typedef rsb::converter::ConverterSelectionStrategy<std::string>::Ptr ConverterSelectionStrategyPtr;
+
 Factory::Factory()
     : logger(rsc::logging::Logger::getLogger("rsb.transport.spread.Factory")) {
 }

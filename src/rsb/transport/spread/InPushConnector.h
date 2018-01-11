@@ -2,7 +2,7 @@
  *
  * This file is part of the rsb-spread project.
  *
- * Copyright (C) 2011, 2012, 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2011-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -39,7 +39,9 @@
 #include <rsb/transport/InPushConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
-#include "SpreadWrapper.h"
+#include "ReceiverTask.h"
+#include "SpreadConnection.h"
+#include "MembershipManager.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 
@@ -84,7 +86,8 @@ private:
 
     bool                            active;
 
-    SpreadWrapperPtr                connector;
+    SpreadConnectionPtr             connection;
+    MembershipManager               memberships;
     boost::shared_ptr<Scope>        activationScope;
 
     rsc::threading::TaskExecutorPtr exec;

@@ -2,7 +2,7 @@
  *
  * This file is part of the rsb-spread project.
  *
- * Copyright (C) 2011, 2012, 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2011-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -33,10 +33,11 @@
 #include <rsb/transport/InPullConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
+#include "SpreadConnection.h"
+#include "MembershipManager.h"
 #include "DeserializingHandler.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
-#include "SpreadWrapper.h"
 
 namespace rsb {
 namespace transport {
@@ -51,6 +52,8 @@ namespace spread {
 class RSBSPREAD_EXPORT InPullConnector: public transport::InPullConnector,
                                         public transport::ConverterSelectingConnector<std::string> {
 public:
+    typedef converter::ConverterSelectionStrategy<std::string>::Ptr ConverterSelectionStrategyPtr;
+
     InPullConnector(ConverterSelectionStrategyPtr converters,
                     SpreadConnectionPtr           connection);
     virtual ~InPullConnector();
@@ -69,13 +72,14 @@ public:
     EventPtr raiseEvent(bool block);
 
 private:
-    rsc::logging::LoggerPtr logger;
+    rsc::logging::LoggerPtr  logger;
 
-    bool active;
+    bool                     active;
 
-    SpreadWrapperPtr connector;
+    SpreadConnectionPtr      connection;
+    MembershipManager        memberships;
     boost::shared_ptr<Scope> activationScope;
-    DeserializingHandler messageHandler;
+    DeserializingHandler     messageHandler;
 
     EventPtr handleIncomingNotification(rsb::protocol::NotificationPtr notification);
 };

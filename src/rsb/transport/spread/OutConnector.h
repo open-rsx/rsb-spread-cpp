@@ -3,7 +3,7 @@
  * This file is a part of the rsb-spread project.
  *
  * Copyright (C) 2010 by Sebastian Wrede <swrede at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2013-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -29,13 +29,16 @@
 
 #include <string>
 
-#include <rsc/runtime/Properties.h>
+#include <rsb/QualityOfServiceSpec.h>
 
 #include <rsb/transport/OutConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
+#include "SpreadConnection.h"
+#include "GroupNameCache.h"
+#include "SpreadMessage.h"
+
 #include "rsb/transport/spread/rsbspreadexports.h"
-#include "SpreadWrapper.h"
 
 namespace rsb {
 namespace transport {
@@ -45,11 +48,11 @@ namespace spread {
  * @author jmoringe
  */
 class RSBSPREAD_EXPORT OutConnector: public transport::OutConnector,
-        public rsb::transport::ConverterSelectingConnector<std::string> {
+                                     public rsb::transport::ConverterSelectingConnector<std::string> {
 public:
     OutConnector(ConverterSelectionStrategyPtr converters,
-            SpreadConnectionPtr connection, unsigned int maxFragmentSize =
-                    100000);
+                 SpreadConnectionPtr           connection,
+                 unsigned int                  maxFragmentSize = 100000);
     virtual ~OutConnector();
 
     void printContents(std::ostream& stream) const;
@@ -68,14 +71,21 @@ public:
 private:
 
     rsc::logging::LoggerPtr logger;
-    bool active;
-    SpreadWrapperPtr connector;
-    unsigned int maxFragmentSize;
+
+    bool                    active;
+
+    SpreadConnectionPtr     connection;
+    GroupNameCache          groupNameCache;
+
+    QualityOfServiceSpec    qosSpecs;
+    SpreadMessage::QOS      messageQOS;
+
+    unsigned int            maxFragmentSize;
     /**
      * The number of bytes minimally required to successfully serialize the
      * notification with the limited size for each fragment.
      */
-    unsigned int minDataSpace;
+    unsigned int            minDataSpace;
 
 };
 

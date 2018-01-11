@@ -31,6 +31,7 @@
 
 #include <rsb/MetaData.h>
 
+#include "GroupNameCache.h"
 #include "ReceiverTask.h"
 
 using namespace std;
@@ -62,11 +63,11 @@ InPushConnector::InPushConnector(const ConverterSelectionStrategyPtr converters,
                                  SpreadConnectionPtr                 connection) :
     transport::ConverterSelectingConnector<string>(converters),
     logger(Logger::getLogger("rsb.transport.spread.InPushConnector")),
-    active(false),
-    connector(new SpreadWrapper(connection)),
+    active(false), connection(connection),
+    memberships(connection),
     exec(new ThreadedTaskExecutor),
     handler(new Handler(this)) {
-    this->rec.reset(new ReceiverTask(this->connector->getConnection(), this->handler));
+    this->rec.reset(new ReceiverTask(connection, this->handler));
 }
 
 InPushConnector::~InPushConnector() {
@@ -77,15 +78,15 @@ InPushConnector::~InPushConnector() {
 
 void InPushConnector::printContents(ostream& stream) const {
     stream << "active = " << this->active
-           << "connector = " << this->connector;
+           << "connection = " << this->connection;
 }
 
 const string InPushConnector::getTransportURL() const {
-    return this->connector->getTransportURL();
+    return this->connection->getTransportURL();
 }
 
 void InPushConnector::activate() {
-    this->connector->activate();
+    this->connection->activate();
 
     // (re-)start threads
     this->exec->schedule(rec);
@@ -101,28 +102,23 @@ void InPushConnector::activate() {
 
 void InPushConnector::deactivate() {
     this->rec->cancel();
-    if (this->connector->getConnection()->isActive()) {
-        this->connector->getConnection()->interruptReceive();
+    if (this->connection->isActive()) {
+        this->connection->interruptReceive();
         this->rec->waitDone();
     }
-    this->connector->deactivate();
+    this->connection->deactivate();
     this->active = false;
 }
 
 void InPushConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& specs) {
-    this->connector->setQualityOfServiceSpecs(specs);
-    if (specs.getReliability() >= QualityOfServiceSpec::RELIABLE) {
-        this->rec->setPruning(false);
-    } else {
-        this->rec->setPruning(true);
-    }
+    this->rec->setPruning(specs.getReliability() < QualityOfServiceSpec::RELIABLE);
 }
 
 void InPushConnector::setScope(const Scope& scope) {
     if (!active) {
         activationScope.reset(new Scope(scope));
     } else {
-        connector->join(connector->makeGroupName(scope));
+        this->memberships.join(GroupNameCache::scopeToGroup(scope));
     }
 }
 

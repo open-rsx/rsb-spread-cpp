@@ -29,6 +29,7 @@
 
 #include <rsb/MetaData.h>
 #include <rsb/EventId.h>
+#include "GroupNameCache.h"
 
 using namespace std;
 
@@ -45,8 +46,8 @@ InPullConnector::InPullConnector(ConverterSelectionStrategyPtr converters,
                                  SpreadConnectionPtr           connection) :
     ConverterSelectingConnector<std::string>(converters),
     logger(Logger::getLogger("rsb.transport.spread.InPullConnector")),
-    active(false),
-    connector(new SpreadWrapper(connection)) {
+    active(false), connection(connection),
+    memberships(connection) {
 }
 
 InPullConnector::~InPullConnector() {
@@ -57,15 +58,15 @@ InPullConnector::~InPullConnector() {
 
 void InPullConnector::printContents(ostream& stream) const {
     stream << "active = " << this->active
-           << ", connector = " << this->connector;
+           << ", connection = " << this->connection;
 }
 
 const string InPullConnector::getTransportURL() const {
-    return this->connector->getTransportURL();
+    return this->connection->getTransportURL();
 }
 
 void InPullConnector::activate() {
-    this->connector->activate();
+    this->connection->activate();
     this->active = true;
 
     // check that scope is applied
@@ -73,22 +74,21 @@ void InPullConnector::activate() {
         setScope(*activationScope);
         activationScope.reset();
     }
-
 }
 
 void InPullConnector::deactivate() {
-    this->connector->deactivate();
+    this->connection->deactivate();
+    this->active = false;
 }
 
-void InPullConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& specs) {
-    this->connector->setQualityOfServiceSpecs(specs);
+void InPullConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& /*specs*/) {
 }
 
 void InPullConnector::setScope(const Scope& scope) {
-    if (!active) {
+    if (!this->active) {
         this->activationScope.reset(new Scope(scope));
     } else {
-        this->connector->join(this->connector->makeGroupName(scope));
+        this->memberships.join(GroupNameCache::scopeToGroup(scope));
     }
 }
 
@@ -98,7 +98,7 @@ EventPtr InPullConnector::raiseEvent(bool block) {
     SpreadMessage message;
     EventPtr event;
     while (true) {
-        this->connector->receive(message);
+        this->connection->receive(message);
 
         rsb::protocol::NotificationPtr notification
             = this->messageHandler.handleMessage(message);
