@@ -33,6 +33,8 @@ include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_BINARY_DIR}
 
 set(SOURCES rsb/Plugin.cpp
 
+            rsb/transport/spread/ErrorMessages.cpp
+
             rsb/transport/spread/SpreadMessage.cpp
             rsb/transport/spread/SpreadConnection.cpp
             rsb/transport/spread/RefCountingSpreadConnection.cpp
@@ -50,7 +52,9 @@ set(SOURCES rsb/Plugin.cpp
             rsb/transport/spread/Factory.cpp
             rsb/transport/spread/registration.cpp)
 
-set(HEADERS rsb/transport/spread/SpreadMessage.h
+set(HEADERS rsb/transport/spread/ErrorMessages.h
+
+            rsb/transport/spread/SpreadMessage.h
             rsb/transport/spread/SpreadConnection.h
             rsb/transport/spread/RefCountingSpreadConnection.h
             rsb/transport/spread/SpreadWrapper.h

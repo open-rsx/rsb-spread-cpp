@@ -38,6 +38,8 @@
 
 #include <rsb/CommException.h>
 
+#include "ErrorMessages.h"
+
 using namespace rsc::logging;
 
 namespace rsb {
@@ -97,51 +99,18 @@ void SpreadConnection::activate() {
 
     RSCDEBUG(this->logger, "Connecting to Spread daemon at " << this->daemonName);
     char privateGroup[MAX_GROUP_NAME];
-    int ret = SP_connect(this->daemonName.c_str(), 0, 0, 0, &this->mailbox,
-                         privateGroup);
-    this->privateGroup = std::string(privateGroup);
+    int ret = SP_connect(this->daemonName.c_str(), 0, 0, 0,
+                         &this->mailbox, privateGroup);
     if (ret != ACCEPT_SESSION) {
-        std::stringstream errorString;
-        errorString << "Error connecting to '" << this->daemonName << "': ";
-        switch (ret) {
-        case ILLEGAL_SPREAD:
-            errorString
-                    << "connection to spread daemon at "
-                    << this->daemonName << " failed, check port and hostname";
-            break;
-        case COULD_NOT_CONNECT:
-            errorString
-                    << "connection to spread daemon failed due to socket errors, check port and hostname";
-            break;
-        case CONNECTION_CLOSED:
-            errorString
-                    << "communication errors occurred during setup of connection";
-            break;
-        case REJECT_VERSION:
-            errorString
-                    << "daemon or library version mismatch";
-            break;
-        case REJECT_NO_NAME:
-            errorString << "protocol error during setup";
-            break;
-        case REJECT_ILLEGAL_NAME:
-            errorString
-                    << "name provided violated requirement, length or illegal character";
-            break;
-        case REJECT_NOT_UNIQUE:
-            errorString
-                    << "name provided is not unique on this daemon";
-            break;
-        default:
-            errorString << "unknown spread connect error, value: " << ret;
-        }
-        SP_error(ret);
-        RSCFATAL(this->logger, errorString.str());
-        throw CommException(errorString.str());
-    } else {
-        RSCDEBUG(this->logger, "Success, private group id is "
-                 << this->privateGroup);
+        std::string message
+            = boost::str(boost::format("Error connecting to Spread daemon "
+                                       "at '%1%': %2%")
+                         % this->daemonName % spreadErrorString(ret));
+        RSCFATAL(this->logger, message);
+        throw CommException(message);
     }
+    this->privateGroup = std::string(privateGroup);
+    RSCDEBUG(this->logger, "Success, private group is " << this->privateGroup);
     RSCINFO(this->logger, "Connected to Spread daemon");
 
     this->connected = true;
@@ -166,24 +135,11 @@ void SpreadConnection::join(const std::string& group) {
 
     int ret = SP_join(this->mailbox, group.c_str());
     if (ret != 0) {
-        std::stringstream description;
-        description << "Error joining Spread group '" << group << "': ";
-        switch (ret) {
-        case ILLEGAL_GROUP:
-            description << "ILLEGAL_GROUP";
-            break;
-        case ILLEGAL_SESSION:
-            description << "ILLEGAL_SESSION";
-            break;
-        case CONNECTION_CLOSED:
-            description << "CONNECTION_CLOSED";
-            break;
-        default:
-            description << "Unknown Spread error with code " << ret;
-            break;
-        }
-        RSCERROR(this->logger, description.str());
-        throw CommException(description.str());
+        std::string description
+            = boost::str(boost::format("Error joining Spread group '%1%': %2%")
+                         % group % spreadErrorString(ret));
+        RSCERROR(this->logger, description);
+        throw CommException(description);
     }
 
 }
@@ -196,24 +152,11 @@ void SpreadConnection::leave(const std::string& group) {
 
     int ret = SP_leave(this->mailbox, group.c_str());
     if (ret != 0) {
-        std::stringstream description;
-        description << "Error leaving Spread group '" << group << "': ";
-        switch (ret) {
-        case ILLEGAL_GROUP:
-            description << "ILLEGAL_GROUP";
-            break;
-        case ILLEGAL_SESSION:
-            description << "ILLEGAL_SESSION";
-            break;
-        case CONNECTION_CLOSED:
-            description << "CONNECTION_CLOSED";
-            break;
-        default:
-            description << "Unknown Spread error with code " << ret;
-            break;
-        }
-        RSCERROR(this->logger, description.str());
-        throw CommException(description.str());
+        std::string description
+            = boost::str(boost::format("Error leaving Spread group '%1%': %2%")
+                         % group % spreadErrorString(ret));
+        RSCERROR(this->logger, description);
+        throw CommException(description);
     }
 
 }
@@ -236,30 +179,8 @@ void SpreadConnection::receive(SpreadMessage& message) {
                          &numGroups, groups, &messType, &dummyEndianMismatch,
                          SPREAD_MAX_MESSLEN, buf);
     if (ret < 0) {
-        std::string err;
-        switch (ret) {
-        case ILLEGAL_SESSION:
-            err = "spread receive error: mbox given to receive on was illegal";
-            break;
-        case ILLEGAL_MESSAGE:
-            err = "spread receive error: message had an illegal structure";
-            break;
-        case CONNECTION_CLOSED:
-            err = "spread receive error: message communication errors occurred";
-            break;
-        case GROUPS_TOO_SHORT:
-            err
-                    = "spread receive error: groups array too short to hold list of groups";
-            break;
-        case BUFFER_TOO_SHORT:
-            err
-                    = "spread receive error: message body buffer too short to hold the message received";
-            break;
-        default:
-            err = "unknown spread receive error";
-        }
-        throw CommException("Spread communication error. Reason: " + err);
-
+        throw CommException(boost::str(boost::format("Spread receive error: %1%")
+                                       % spreadErrorString(ret)));
     }
 
     // handle normal messages
@@ -346,26 +267,10 @@ void SpreadConnection::send(const SpreadMessage& message) {
              groups.size(), (const char(*)[MAX_GROUP_NAME]) groupNames, 0,
              data.size(), data.c_str());
     }
-
     if (ret < 0) {
-        std::stringstream err;
-        switch (ret) {
-        case ILLEGAL_SESSION:
-            err << "Illegal Session";
-            break;
-        case ILLEGAL_MESSAGE:
-            err << "Illegal Message";
-            break;
-        case CONNECTION_CLOSED:
-            err << "Connection Closed";
-            break;
-        default:
-            err << "Unknown spread error with code " << ret;
-            break;
-        }
-        throw CommException(err.str());
+        throw CommException(boost::str(boost::format("Spread receive error: %1%")
+                                       % spreadErrorString(ret)));
     }
-
 }
 
 void SpreadConnection::interruptReceive() {
