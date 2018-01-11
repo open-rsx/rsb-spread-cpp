@@ -34,6 +34,8 @@
 
 #include <rsc/misc/IllegalStateException.h>
 
+#include <rsc/runtime/ContainerIO.h>
+
 #include <sp.h>
 
 #include <rsb/CommException.h>
@@ -70,12 +72,9 @@ SpreadConnection::SpreadConnection(const std::string& host,
                : boost::str(boost::format("%1%@%2%") % port % host))
 #endif
     {
-    RSCDEBUG(this->logger, "instantiated spread connection"
-             << " to spread daemon at " << this->daemonName);
 }
 
 SpreadConnection::~SpreadConnection() {
-    RSCDEBUG(this->logger, "destroying SpreadConnection object");
     if (this->connected) {
         deactivate();
     }
@@ -97,7 +96,8 @@ void SpreadConnection::activate() {
                         % this->privateGroup));
     }
 
-    RSCDEBUG(this->logger, "Connecting to Spread daemon at " << this->daemonName);
+    RSCINFO(this->logger, (boost::format("Connecting to Spread daemon at '%1%'")
+                           % this->daemonName));
     char privateGroup[MAX_GROUP_NAME];
     int ret = SP_connect(this->daemonName.c_str(), 0, 0, 0,
                          &this->mailbox, privateGroup);
@@ -110,8 +110,9 @@ void SpreadConnection::activate() {
         throw CommException(message);
     }
     this->privateGroup = std::string(privateGroup);
-    RSCDEBUG(this->logger, "Success, private group is " << this->privateGroup);
-    RSCINFO(this->logger, "Connected to Spread daemon");
+    RSCINFO(this->logger, (boost::format("Connected to Spread daemon at '%1%',"
+                                         " private group is '%2%'")
+                           % this->daemonName % this->privateGroup));
 
     this->connected = true;
 }
@@ -185,7 +186,6 @@ void SpreadConnection::receive(SpreadMessage& message) {
 
     // handle normal messages
     if (Is_regular_mess(serviceType)) {
-        RSCDEBUG(this->logger, "Regular Spread message received");
         // cancel if requested
         if (numGroups == 1 && std::string(groups[0]) == this->privateGroup) {
             throw boost::thread_interrupted();
@@ -200,23 +200,18 @@ void SpreadConnection::receive(SpreadMessage& message) {
                     << " configured size " << SPREAD_MAX_GROUPS);
         }
         for (int i = 0; i < numGroups; i++) {
-            if (groups[i] != NULL) {
-                std::string group = std::string(groups[i]);
-                RSCDEBUG(this->logger,
-                        "received message, addressed at group with name "
-                        << group);
-                message.addGroup(group);
-            }
+            message.addGroup(std::string(groups[i]));
         }
+        RSCDEBUG(this->logger, "Received regular message with groups "
+                 << message.getGroups());
     } else if (Is_membership_mess(serviceType)) {
         // This will currently never happen as we do not want to have
         // membership messages and this message does not contain any
         // contents.
         RSCINFO(this->logger, "received spread membership message type");
         message.setType(SpreadMessage::MEMBERSHIP);
-
     } else {
-        RSCFATAL(this->logger, "received unknown spread message type with code "
+        RSCFATAL(this->logger, "Received unknown Spread message type with type "
                  << serviceType);
         assert(false);
         throw CommException(
@@ -268,7 +263,7 @@ void SpreadConnection::send(const SpreadMessage& message) {
              data.size(), data.c_str());
     }
     if (ret < 0) {
-        throw CommException(boost::str(boost::format("Spread receive error: %1%")
+        throw CommException(boost::str(boost::format("Spread send error: %1%")
                                        % spreadErrorString(ret)));
     }
 }
