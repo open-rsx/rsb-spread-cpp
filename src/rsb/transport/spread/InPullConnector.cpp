@@ -27,6 +27,9 @@
 
 #include "InPullConnector.h"
 
+#include <rsb/MetaData.h>
+#include <rsb/EventId.h>
+
 using namespace std;
 
 using namespace rsc::logging;
@@ -39,11 +42,11 @@ namespace transport {
 namespace spread {
 
 InPullConnector::InPullConnector(ConverterSelectionStrategyPtr converters,
-        SpreadConnectionPtr connection) :
+                                 SpreadConnectionPtr           connection) :
+    ConverterSelectingConnector<std::string>(converters),
     logger(Logger::getLogger("rsb.transport.spread.InPullConnector")),
     active(false),
-    connector(new SpreadWrapper(connection)),
-    processor(converters) {
+    connector(new SpreadWrapper(connection)) {
 }
 
 InPullConnector::~InPullConnector() {
@@ -96,16 +99,43 @@ EventPtr InPullConnector::raiseEvent(bool block) {
     EventPtr event;
     while (true) {
         this->connector->receive(message);
-        if (message.getType() != SpreadMessage::REGULAR) {
+
+        rsb::protocol::NotificationPtr notification
+            = this->messageHandler.handleMessage(message);
+        if (!notification) {
             continue;
         }
-        event = this->processor.processMessage(message);
-        if (event) {
-            return event;
+
+        EventPtr event = handleIncomingNotification(notification);
+        if (!event) {
+            continue;
         }
+        return event;
     };
     // This should never happen so far unless non-blocking (not implemented so far)
     return EventPtr();
+}
+
+EventPtr InPullConnector::handleIncomingNotification(rsb::protocol::NotificationPtr notification) {
+    EventPtr event(new Event());
+
+    // TODO fix error handling, see #796
+    try {
+        ConverterPtr converter = getConverter(notification->wire_schema());
+        AnnotatedData deserialized
+            = converter->deserialize(notification->wire_schema(),
+                                     notification->data());
+
+        fillEvent(event, *notification, deserialized.second, deserialized.first);
+
+        event->mutableMetaData().setReceiveTime();
+    } catch (const std::exception& ex) {
+        RSCWARN(this->logger, "InPushConnector::handleIncomingNotification caught std exception: " << ex.what() );
+    } catch (...) {
+        RSCWARN(this->logger, "InPushConnector::handleIncomingNotification caught unknown exception" );
+    }
+
+    return event;
 }
 
 }

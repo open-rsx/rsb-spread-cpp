@@ -1,6 +1,6 @@
 # This file is part of the rsb-spread project.
 #
-# Copyright (C) 2013, 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+# Copyright (C) 2013-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 #
 # This file may be licensed under the terms of the
 # GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -40,7 +40,7 @@ set(SOURCES rsb/Plugin.cpp
 
             rsb/transport/spread/MembershipManager.cpp
             rsb/transport/spread/Assembly.cpp
-            rsb/transport/spread/MessageHandler.cpp
+            rsb/transport/spread/DeserializingHandler.cpp
             rsb/transport/spread/ReceiverTask.cpp
 
             rsb/transport/spread/InPushConnector.cpp
@@ -57,7 +57,7 @@ set(HEADERS rsb/transport/spread/SpreadMessage.h
 
             rsb/transport/spread/MembershipManager.h
             rsb/transport/spread/Assembly.h
-            rsb/transport/spread/MessageHandler.h
+            rsb/transport/spread/DeserializingHandler.h
             rsb/transport/spread/ReceiverTask.h
 
             rsb/transport/spread/InPushConnector.h

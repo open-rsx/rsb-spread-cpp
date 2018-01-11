@@ -28,12 +28,8 @@
 
 #include <rsc/logging/Logger.h>
 
-#include <rsb/Event.h>
-
 #include <rsb/protocol/Notification.h>
 #include <rsb/protocol/FragmentedNotification.h>
-
-#include <rsb/transport/ConverterSelectingConnector.h>
 
 #include "SpreadMessage.h"
 #include "Assembly.h"
@@ -45,24 +41,38 @@ namespace transport {
 namespace spread {
 
 /**
- *
+ * Deserializes @ref SpreadMessage objects into @ref
+ * rsb::protocol::Notification objects.
  *
  * @author jmoringe
  */
-class RSBSPREAD_EXPORT MessageHandler : public transport::ConverterSelectingConnector<std::string> {
+class RSBSPREAD_EXPORT DeserializingHandler {
 public:
-    MessageHandler(ConverterSelectionStrategyPtr converters);
-    virtual ~MessageHandler();
+    DeserializingHandler();
+    virtual ~DeserializingHandler();
 
-    EventPtr processMessage(const SpreadMessage& message);
-
+    /**
+     * Enables or disables pruning of messages.
+     *
+     * @param pruning if @c true and not pruning, start pruning, else
+     *        if @c false and pruning, stop pruning
+     */
     void setPruning(const bool& pruning);
+
+    /**
+     * Handles received Spread messages.
+     *
+     * Extracts notifications and joins fragmented payloads in case of
+     * multiple fragment messages.
+     *
+     * @param message Spread message to handle
+     * @return pointer to the joined notification
+     */
+    rsb::protocol::NotificationPtr handleMessage(const SpreadMessage& message);
 private:
     rsc::logging::LoggerPtr logger;
 
     AssemblyPoolPtr assemblyPool;
-
-    rsb::protocol::NotificationPtr handleAndJoinFragmentedNotification(rsb::protocol::FragmentedNotificationPtr notification);
 };
 
 }

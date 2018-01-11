@@ -33,7 +33,7 @@
 #include <rsb/transport/InPullConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
-#include "MessageHandler.h"
+#include "DeserializingHandler.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 #include "SpreadWrapper.h"
@@ -48,10 +48,11 @@ namespace spread {
  *
  * @author jmoringe
  */
-class RSBSPREAD_EXPORT InPullConnector: public transport::InPullConnector {
+class RSBSPREAD_EXPORT InPullConnector: public transport::InPullConnector,
+                                        public transport::ConverterSelectingConnector<std::string> {
 public:
     InPullConnector(ConverterSelectionStrategyPtr converters,
-                    SpreadConnectionPtr connection);
+                    SpreadConnectionPtr           connection);
     virtual ~InPullConnector();
 
     void printContents(std::ostream& stream) const;
@@ -74,7 +75,9 @@ private:
 
     SpreadWrapperPtr connector;
     boost::shared_ptr<Scope> activationScope;
-    MessageHandler processor;
+    DeserializingHandler messageHandler;
+
+    EventPtr handleIncomingNotification(rsb::protocol::NotificationPtr notification);
 };
 
 }
