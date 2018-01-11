@@ -39,6 +39,8 @@
 #include <rsb/transport/InPushConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
+#include "ConnectorBase.h"
+
 #include "ReceiverTask.h"
 #include "SpreadConnection.h"
 #include "MembershipManager.h"
@@ -57,16 +59,13 @@ class ReceiverTask;
  *
  * @author jmoringe
  */
-class RSBSPREAD_EXPORT InPushConnector: public transport::InPushConnector,
-                                        public transport::ConverterSelectingConnector<std::string> {
+class RSBSPREAD_EXPORT InPushConnector: public virtual transport::InPushConnector,
+                                        public virtual transport::ConverterSelectingConnector<std::string>,
+                                        public virtual ConnectorBase {
 public:
     InPushConnector(ConverterSelectionStrategyPtr converters,
                     SpreadConnectionPtr           connection);
     virtual ~InPushConnector();
-
-    void printContents(std::ostream& stream) const;
-
-    const std::string getTransportURL() const;
 
     void setScope(const Scope& scope);
 
@@ -84,9 +83,6 @@ private:
 
     rsc::logging::LoggerPtr         logger;
 
-    bool                            active;
-
-    SpreadConnectionPtr             connection;
     MembershipManager               memberships;
     boost::shared_ptr<Scope>        activationScope;
 

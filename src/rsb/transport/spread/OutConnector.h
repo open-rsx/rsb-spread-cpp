@@ -34,6 +34,8 @@
 #include <rsb/transport/OutConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
+#include "ConnectorBase.h"
+
 #include "SpreadConnection.h"
 #include "GroupNameCache.h"
 #include "SpreadMessage.h"
@@ -47,17 +49,14 @@ namespace spread {
 /**
  * @author jmoringe
  */
-class RSBSPREAD_EXPORT OutConnector: public transport::OutConnector,
-                                     public rsb::transport::ConverterSelectingConnector<std::string> {
+class RSBSPREAD_EXPORT OutConnector: public virtual transport::OutConnector,
+                                     public virtual rsb::transport::ConverterSelectingConnector<std::string>,
+                                     public virtual ConnectorBase {
 public:
     OutConnector(ConverterSelectionStrategyPtr converters,
                  SpreadConnectionPtr           connection,
                  unsigned int                  maxFragmentSize = 100000);
     virtual ~OutConnector();
-
-    void printContents(std::ostream& stream) const;
-
-    const std::string getTransportURL() const;
 
     void setScope(const Scope& scope);
 
@@ -72,9 +71,6 @@ private:
 
     rsc::logging::LoggerPtr logger;
 
-    bool                    active;
-
-    SpreadConnectionPtr     connection;
     GroupNameCache          groupNameCache;
 
     QualityOfServiceSpec    qosSpecs;

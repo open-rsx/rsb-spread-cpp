@@ -45,8 +45,8 @@ namespace spread {
 InPullConnector::InPullConnector(ConverterSelectionStrategyPtr converters,
                                  SpreadConnectionPtr           connection) :
     ConverterSelectingConnector<std::string>(converters),
+    ConnectorBase(connection),
     logger(Logger::getLogger("rsb.transport.spread.InPullConnector")),
-    active(false), connection(connection),
     memberships(connection) {
 }
 
@@ -56,16 +56,9 @@ InPullConnector::~InPullConnector() {
     }
 }
 
-void InPullConnector::printContents(ostream& stream) const {
-    stream << "active = " << this->active
-           << ", connection = " << this->connection;
-}
-
-const string InPullConnector::getTransportURL() const {
-    return this->connection->getTransportURL();
-}
-
 void InPullConnector::activate() {
+    ConnectorBase::activate();
+
     this->connection->activate();
     this->active = true;
 
@@ -77,6 +70,8 @@ void InPullConnector::activate() {
 }
 
 void InPullConnector::deactivate() {
+    ConnectorBase::deactivate();
+
     this->connection->deactivate();
     this->active = false;
 }

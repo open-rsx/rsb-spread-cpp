@@ -33,6 +33,8 @@
 #include <rsb/transport/InPullConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
+#include "ConnectorBase.h"
+
 #include "SpreadConnection.h"
 #include "MembershipManager.h"
 #include "DeserializingHandler.h"
@@ -49,18 +51,15 @@ namespace spread {
  *
  * @author jmoringe
  */
-class RSBSPREAD_EXPORT InPullConnector: public transport::InPullConnector,
-                                        public transport::ConverterSelectingConnector<std::string> {
+class RSBSPREAD_EXPORT InPullConnector: public virtual transport::InPullConnector,
+                                        public virtual transport::ConverterSelectingConnector<std::string>,
+                                        public virtual ConnectorBase {
 public:
     typedef converter::ConverterSelectionStrategy<std::string>::Ptr ConverterSelectionStrategyPtr;
 
     InPullConnector(ConverterSelectionStrategyPtr converters,
                     SpreadConnectionPtr           connection);
     virtual ~InPullConnector();
-
-    void printContents(std::ostream& stream) const;
-
-    const std::string getTransportURL() const;
 
     void setScope(const Scope& scope);
 
@@ -74,9 +73,6 @@ public:
 private:
     rsc::logging::LoggerPtr  logger;
 
-    bool                     active;
-
-    SpreadConnectionPtr      connection;
     MembershipManager        memberships;
     boost::shared_ptr<Scope> activationScope;
     DeserializingHandler     messageHandler;

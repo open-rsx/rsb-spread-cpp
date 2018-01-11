@@ -52,8 +52,8 @@ OutConnector::OutConnector(ConverterSelectionStrategyPtr converters,
                            SpreadConnectionPtr           connection,
                            unsigned int                  maxFragmentSize) :
     transport::ConverterSelectingConnector<string>(converters),
+    ConnectorBase(connection),
     logger(Logger::getLogger("rsb.transport.spread.OutConnector")),
-    active(false), connection(connection),
     qosSpecs(QualityOfServiceSpec(QualityOfServiceSpec::ORDERED,
                                   QualityOfServiceSpec::RELIABLE)),
     messageQOS(SpreadMessage::FIFO),
@@ -66,24 +66,22 @@ OutConnector::~OutConnector() {
     }
 }
 
-void OutConnector::printContents(ostream& stream) const {
-    stream << "connection = " << connection << ", active = " << active;
-}
-
-const string OutConnector::getTransportURL() const {
-    return this->connection->getTransportURL();
-}
-
 void OutConnector::setScope(const Scope& /*scope*/) {
 }
 
 void OutConnector::activate() {
+    ConnectorBase::activate();
+
     this->connection->activate();
+
     this->active = true;
 }
 
 void OutConnector::deactivate() {
+    ConnectorBase::deactivate();
+
     this->connection->deactivate();
+
     this->active = false;
 }
 

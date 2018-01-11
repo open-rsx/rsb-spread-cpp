@@ -62,8 +62,8 @@ public:
 InPushConnector::InPushConnector(const ConverterSelectionStrategyPtr converters,
                                  SpreadConnectionPtr                 connection) :
     transport::ConverterSelectingConnector<string>(converters),
+    ConnectorBase(connection),
     logger(Logger::getLogger("rsb.transport.spread.InPushConnector")),
-    active(false), connection(connection),
     memberships(connection),
     exec(new ThreadedTaskExecutor),
     handler(new Handler(this)) {
@@ -76,16 +76,9 @@ InPushConnector::~InPushConnector() {
     }
 }
 
-void InPushConnector::printContents(ostream& stream) const {
-    stream << "active = " << this->active
-           << "connection = " << this->connection;
-}
-
-const string InPushConnector::getTransportURL() const {
-    return this->connection->getTransportURL();
-}
-
 void InPushConnector::activate() {
+    ConnectorBase::activate();
+
     this->connection->activate();
 
     // (re-)start threads
@@ -101,6 +94,8 @@ void InPushConnector::activate() {
 }
 
 void InPushConnector::deactivate() {
+    ConnectorBase::deactivate();
+
     this->rec->cancel();
     if (this->connection->isActive()) {
         this->connection->interruptReceive();
