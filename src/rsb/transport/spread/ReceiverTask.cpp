@@ -32,8 +32,6 @@
 
 #include <rsb/CommException.h>
 
-#include <rsb/converter/Converter.h>
-
 using namespace std;
 
 namespace rsb {
@@ -43,7 +41,7 @@ namespace spread {
 ReceiverTask::ReceiverTask(SpreadConnectionPtr connection,
                            HandlerPtr          handler) :
     logger(rsc::logging::Logger::getLogger("rsb.transport.spread.ReceiverTask")),
-    connection(connection), assemblyPool(new AssemblyPool()), handler(handler),
+    connection(connection), handler(handler),
     errorStrategy(ParticipantConfig::ERROR_STRATEGY_PRINT) {
     RSCTRACE(logger, "ReceiverTask::ReceiverTask, SpreadConnection: " << this->connection);
 }
@@ -54,34 +52,14 @@ ReceiverTask::~ReceiverTask() {
 void ReceiverTask::execute() {
     // TODO Do performance optimization for data joining
     try {
-
-        SpreadMessage message(SpreadMessage::REGULAR);
+        SpreadMessage message;
         this->connection->receive(message);
 
-        RSCDEBUG(logger,
-                "ReceiverTask::execute new SpreadMessage received " << &message);
-
-        if (message.getType() != SpreadMessage::REGULAR) {
-            return;
+        rsb::protocol::NotificationPtr notification
+            = this->messageHandler.handleMessage(message);
+        if (notification) {
+            this->handler->handleIncomingNotification(notification);
         }
-
-        rsb::protocol::FragmentedNotificationPtr notification
-            (new rsb::protocol::FragmentedNotification());
-        if (!notification->ParseFromString(message.getData())) {
-            throw CommException("Failed to parse notification in pbuf format");
-        }
-
-        RSCTRACE(this->logger,
-                 "Parsed event seqnum: " << notification->notification().event_id().sequence_number());
-        RSCTRACE(this->logger,
-                 "Binary length: " << notification->notification().data().length());
-        RSCTRACE(this->logger,
-                 "Number of split message parts: " << notification->num_data_parts());
-        RSCTRACE(this->logger,
-                 "... received message part    : " << notification->data_part());
-
-        // Build data from parts
-        handleAndJoinFragmentedNotification(notification);
     } catch (rsb::CommException& e) {
         // TODO QoS would not like swallowing the exception
         rsc::debug::DebugToolsPtr tools = rsc::debug::DebugTools::newInstance();
@@ -113,29 +91,8 @@ void ReceiverTask::execute() {
 
 }
 
-void ReceiverTask::handleAndJoinFragmentedNotification(
-    rsb::protocol::FragmentedNotificationPtr notification) {
-
-    rsb::protocol::NotificationPtr completeNotification;
-
-    bool multiPartNotification = notification->num_data_parts() > 1;
-    if (multiPartNotification) {
-        completeNotification = this->assemblyPool->add(notification);
-    } else {
-        completeNotification.reset(
-                notification->mutable_notification(),
-                rsc::misc::ParentSharedPtrDeleter
-                        < rsb::protocol::FragmentedNotification
-                        > (notification));
-    }
-
-    if (completeNotification) {
-        this->handler->handleIncomingNotification(completeNotification);
-    }
-}
-
 void ReceiverTask::setPruning(const bool& pruning) {
-    this->assemblyPool->setPruning(pruning);
+    this->messageHandler.setPruning(pruning);
 }
 
 void ReceiverTask::setErrorStrategy(ParticipantConfig::ErrorStrategy strategy) {

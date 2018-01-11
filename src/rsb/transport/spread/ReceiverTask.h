@@ -40,7 +40,7 @@
 #include <rsb/protocol/FragmentedNotification.h>
 
 #include "SpreadConnection.h"
-#include "Assembly.h"
+#include "DeserializingHandler.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 
@@ -100,22 +100,10 @@ private:
      */
     void notifyHandler(protocol::NotificationPtr notification);
 
-    /**
-     * Handles newly received notifications by extracting their data, joining
-     * the data if it is part of a multi-part message and returning the
-     * joined notification.
-     *
-     * @param notification notification to handler
-     * @return pointer to the joined notification
-     */
-    void handleAndJoinFragmentedNotification(
-        protocol::FragmentedNotificationPtr notification);
-
     rsc::logging::LoggerPtr          logger;
 
     SpreadConnectionPtr              connection;
-
-    AssemblyPoolPtr                  assemblyPool;
+    DeserializingHandler             messageHandler;
 
     HandlerPtr                       handler;
     boost::recursive_mutex           handlerMutex;
