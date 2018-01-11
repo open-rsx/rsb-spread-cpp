@@ -27,6 +27,8 @@
 
 #include "ReceiverTask.h"
 
+#include <boost/format.hpp>
+
 #include <rsc/misc/langutils.h>
 #include <rsc/debug/DebugTools.h>
 
@@ -43,7 +45,6 @@ ReceiverTask::ReceiverTask(SpreadConnectionPtr connection,
     logger(rsc::logging::Logger::getLogger("rsb.transport.spread.ReceiverTask")),
     connection(connection), handler(handler),
     errorStrategy(ParticipantConfig::ERROR_STRATEGY_PRINT) {
-    RSCTRACE(logger, "ReceiverTask::ReceiverTask, SpreadConnection: " << this->connection);
 }
 
 ReceiverTask::~ReceiverTask() {
@@ -63,32 +64,30 @@ void ReceiverTask::execute() {
     } catch (rsb::CommException& e) {
         // TODO QoS would not like swallowing the exception
         rsc::debug::DebugToolsPtr tools = rsc::debug::DebugTools::newInstance();
+        std::string message
+            = boost::str(boost::format("Error receiving spread message: %1%\n%2%\n")
+                         % e.what() % tools->exceptionInfo(e));
         switch (this->errorStrategy) {
-        case ParticipantConfig::ERROR_STRATEGY_LOG:
-            RSCERROR(this->logger,
-                     "Error receiving spread message: " << e.what() << endl << tools->exceptionInfo(e) << "\nTerminating receiving new spread messages!");
-            break;
         case ParticipantConfig::ERROR_STRATEGY_PRINT:
-            cerr << "Error receiving spread message: " << e.what() << endl
-                 << tools->exceptionInfo(e) << endl
+            cerr << message
                  << "Terminating receiving new spread messages!" << endl;
             break;
         case ParticipantConfig::ERROR_STRATEGY_EXIT:
-            RSCFATAL(this->logger,
-                     "Error receiving spread message: " << e.what() << endl << tools->exceptionInfo(e) << "\nTerminating the whole process as requested via configuration.");
+            RSCFATAL(this->logger, message
+                     << "\nTerminating the process as requested via configuration.");
             exit(1);
             break;
+        case ParticipantConfig::ERROR_STRATEGY_LOG:
         default:
             assert(false);
-            RSCERROR(this->logger,
-                     "Error receiving spread message: " << e.what() << endl << tools->exceptionInfo(e) << "\nTerminating receiving new spread messages!");
+            RSCERROR(this->logger, message
+                     << "\nTerminating receiving new spread messages!");
             break;
         }
         this->cancel();
     } catch (boost::thread_interrupted& e) {
         return;
     }
-
 }
 
 void ReceiverTask::setPruning(const bool& pruning) {
