@@ -95,7 +95,7 @@ Bus::~Bus() {
 
 void Bus::printContents(std::ostream& stream) const {
     stream << "connection = ";
-    //this->connection->printContents(stream);
+    this->connection->printContents(stream);
     stream << ", state = " << (this->active ? "" : "not ") << "active"
            << ", sinks = " << this->scopeDispatcher.size();
 }

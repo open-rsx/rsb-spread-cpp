@@ -27,12 +27,16 @@
 
 #pragma once
 
+#include <iostream>
+
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/condition.hpp>
 #if defined WIN32 // see comment in SpreadConnection::send
 #include <boost/thread/mutex.hpp>
 #endif
+
+#include <rsc/runtime/Printable.h>
 
 #include <rsc/logging/Logger.h>
 
@@ -59,11 +63,13 @@ RSBSPREAD_EXPORT unsigned int defaultPort();
  * @author jwienke
  * @author jmoringe
  */
-class RSBSPREAD_EXPORT SpreadConnection {
+class RSBSPREAD_EXPORT SpreadConnection : public rsc::runtime::Printable {
 public:
     SpreadConnection(const std::string& host = defaultHost(),
                      unsigned int port       = defaultPort());
     virtual ~SpreadConnection();
+
+    void printContents(std::ostream& stream) const;
 
     const std::string getTransportURL() const;
 

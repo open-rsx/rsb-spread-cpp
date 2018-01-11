@@ -84,7 +84,7 @@ Factory::HostAndPort Factory::parseOptions(const rsc::runtime::Properties& args)
 
 rsb::transport::InPushConnector*
 Factory::createInPushConnector(const rsc::runtime::Properties& args) {
-    RSCDEBUG(this->logger, "creating InPushConnector with properties " << args);
+    RSCDEBUG(this->logger, "Creating InPushConnector with properties " << args);
 
     return new InPushConnector(
             args.get<ConverterSelectionStrategyPtr>("converters"),
@@ -93,7 +93,7 @@ Factory::createInPushConnector(const rsc::runtime::Properties& args) {
 
 rsb::transport::InPullConnector*
 Factory::createInPullConnector(const rsc::runtime::Properties& args) {
-    RSCDEBUG(this->logger, "creating InPullConnector with properties " << args);
+    RSCDEBUG(this->logger, "Creating InPullConnector with properties " << args);
 
     return new InPullConnector(
             args.get<ConverterSelectionStrategyPtr>("converters"),
@@ -102,7 +102,7 @@ Factory::createInPullConnector(const rsc::runtime::Properties& args) {
 
 rsb::transport::OutConnector*
 Factory::createOutConnector(const rsc::runtime::Properties& args) {
-    RSCDEBUG(this->logger, "creating OutConnector with properties " << args);
+    RSCDEBUG(this->logger, "Creating OutConnector with properties " << args);
 
     return new OutConnector(
             args.get<ConverterSelectionStrategyPtr>("converters"),

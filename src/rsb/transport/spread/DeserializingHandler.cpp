@@ -26,6 +26,8 @@
 
 #include "DeserializingHandler.h"
 
+#include <boost/format.hpp>
+
 #include <rsb/CommException.h>
 
 using namespace rsc::logging;
@@ -60,11 +62,12 @@ DeserializingHandler::handleMessage(const SpreadMessage& message) {
         throw CommException("Failed to parse notification in pbuf format");
     }
 
-    RSCDEBUG(this->logger, "Notification with"
-             << " sequence number = "<< fragment->notification().event_id().sequence_number()
-             << " length = " << fragment->notification().data().length()
-             << " fragment = " << fragment->data_part()
-             << "/" << fragment->num_data_parts());
+    RSCTRACE(this->logger,
+             (boost::format("Notification with sequence number = %1%, "
+                            "length = %2%, fragment = %3%/%4%")
+              % fragment->notification().event_id().sequence_number()
+              % fragment->notification().data().length()
+              % fragment->data_part() % fragment->num_data_parts()));
 
     // Assemble complete notification from parts, if necessary.
     rsb::protocol::NotificationPtr notification

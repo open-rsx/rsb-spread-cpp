@@ -80,6 +80,10 @@ SpreadConnection::~SpreadConnection() {
     }
 }
 
+void SpreadConnection::printContents(std::ostream& stream) const {
+    stream << this->privateGroup << "@" << this->daemonName;
+}
+
 const std::string SpreadConnection::getTransportURL() const {
     return boost::str(boost::format("spread://%1%:%2%")
                       % this->host % this->port);
@@ -121,6 +125,10 @@ void SpreadConnection::deactivate() {
     if (!this->connected) {
         throw rsc::misc::IllegalStateException("Connection is not active.");
     }
+
+    RSCINFO(this->logger, (boost::format("%1% is disconnecting from Spread "
+                                         "daemon at '%2%'")
+                           % *this % this->daemonName));
     // We can safely ignore errors here since there is no way to
     // recover anyway.
     SP_disconnect(this->mailbox);
@@ -129,10 +137,12 @@ void SpreadConnection::deactivate() {
 }
 
 void SpreadConnection::join(const std::string& group) {
-
     if (!this->connected) {
         throw rsc::misc::IllegalStateException("Connection is not active.");
     }
+
+    RSCDEBUG(this->logger, (boost::format("%1% joins Spread group %2%")
+                            % *this % group));
 
     int ret = SP_join(this->mailbox, group.c_str());
     if (ret != 0) {
@@ -142,14 +152,15 @@ void SpreadConnection::join(const std::string& group) {
         RSCERROR(this->logger, description);
         throw CommException(description);
     }
-
 }
 
 void SpreadConnection::leave(const std::string& group) {
-
     if (!this->connected) {
         throw rsc::misc::IllegalStateException("Connection is not active.");
     }
+
+    RSCDEBUG(this->logger, (boost::format("%1% leaves Spread group %2%")
+                            % *this % group));
 
     int ret = SP_leave(this->mailbox, group.c_str());
     if (ret != 0) {
@@ -159,7 +170,6 @@ void SpreadConnection::leave(const std::string& group) {
         RSCERROR(this->logger, description);
         throw CommException(description);
     }
-
 }
 
 void SpreadConnection::receive(SpreadMessage& message) {
@@ -202,8 +212,9 @@ void SpreadConnection::receive(SpreadMessage& message) {
         for (int i = 0; i < numGroups; i++) {
             message.addGroup(std::string(groups[i]));
         }
-        RSCDEBUG(this->logger, "Received regular message with groups "
-                 << message.getGroups());
+        RSCTRACE(this->logger,
+                 (boost::format("%1% Received regular message with groups %2%")
+                  % *this % message.getGroups()));
     } else if (Is_membership_mess(serviceType)) {
         // This will currently never happen as we do not want to have
         // membership messages and this message does not contain any
@@ -243,13 +254,13 @@ void SpreadConnection::send(const SpreadMessage& message) {
 #endif
 
     int ret;
-    if (groups.size() == 1) { // use SP_multicast
+    if (groups.size() == 1) { // only one group => use SP_multicast
         const std::string& group = *groups.begin();
         assert(group.size() < MAX_GROUP_NAME);
         ret = SP_multicast(this->mailbox, message.getQOS() | SELF_DISCARD,
                            group.c_str(), 0,
                            data.size(), data.c_str());
-    } else { // use SP_multigroup_multicast
+    } else { // multiple groups => use SP_multigroup_multicast
         char groupNames[SPREAD_MAX_GROUPS][MAX_GROUP_NAME];
         int i = 0;
         for (std::set<std::string>::const_iterator it
