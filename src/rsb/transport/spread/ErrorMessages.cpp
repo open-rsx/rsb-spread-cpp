@@ -87,8 +87,10 @@ std::string spreadErrorString(int code) {
     case MESSAGE_TOO_LONG:
         return "Message body too long when sending a message";
 
+#if defined SP_BUG
     case SP_BUG:
         return "Internal error in the Spread library.";
+#endif
 
     default:
         return boost::str(boost::format("Unknown Spread error, code: %1%")
