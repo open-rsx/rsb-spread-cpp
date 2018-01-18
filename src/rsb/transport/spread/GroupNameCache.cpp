@@ -26,6 +26,9 @@
 
 #include "GroupNameCache.h"
 
+#include <boost/thread/locks.hpp>
+#include <boost/thread/lock_types.hpp>
+
 #include <rsb/util/MD5.h>
 
 #include <sp.h>
