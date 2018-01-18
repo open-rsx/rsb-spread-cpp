@@ -33,11 +33,18 @@
 
 #include "SpreadConnection.h"
 
+#include "rsb/transport/spread/rsbspreadexports.h"
+
 namespace rsb {
 namespace transport {
 namespace spread {
 
-class ConnectorBase : public virtual transport::Connector {
+/**
+ * Base class for Spread connector classes.
+ *
+ * @author jmoringe
+ */
+class RSBSPREAD_EXPORT ConnectorBase : public virtual transport::Connector {
 public:
     ConnectorBase(SpreadConnectionPtr connection);
     virtual ~ConnectorBase();
