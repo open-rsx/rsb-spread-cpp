@@ -88,6 +88,7 @@ TEST_P(ConnectorTest, testConnection) {
     {
         InPullConnectorPtr connector;
         ASSERT_NO_THROW(connector = GetParam().createInPullConnector());
+        connector->setScope("/foo");
         ASSERT_NO_THROW(connector->activate());
         ASSERT_NO_THROW(connector->deactivate());
     }
@@ -95,6 +96,7 @@ TEST_P(ConnectorTest, testConnection) {
     {
         InPushConnectorPtr connector;
         ASSERT_NO_THROW(connector = GetParam().createInPushConnector());
+        connector->setScope("/foo");
         ASSERT_NO_THROW(connector->activate());
         ASSERT_NO_THROW(connector->deactivate());
     }
