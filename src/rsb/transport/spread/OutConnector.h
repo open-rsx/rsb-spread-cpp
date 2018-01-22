@@ -50,7 +50,7 @@ namespace spread {
  * @author jmoringe
  */
 class RSBSPREAD_EXPORT OutConnector: public virtual transport::OutConnector,
-                                     public virtual rsb::transport::ConverterSelectingConnector<std::string>,
+                                     public virtual transport::ConverterSelectingConnector<std::string>,
                                      public virtual ConnectorBase {
 public:
     OutConnector(ConverterSelectionStrategyPtr converters,
@@ -60,7 +60,7 @@ public:
 
     void setScope(const Scope& scope);
 
-    void handle(rsb::EventPtr e);
+    void handle(rsb::EventPtr event);
 
     void activate();
     void deactivate();
@@ -78,8 +78,9 @@ private:
 
     unsigned int            maxFragmentSize;
     /**
-     * The number of bytes minimally required to successfully serialize the
-     * notification with the limited size for each fragment.
+     * The number of bytes minimally required to successfully
+     * serialize the notification with the limited size for each
+     * fragment.
      */
     unsigned int            minDataSpace;
 
