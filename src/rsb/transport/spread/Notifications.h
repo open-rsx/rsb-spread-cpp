@@ -27,11 +27,16 @@
 #pragma once
 
 #include <string>
-#include <ostream>
+#include <vector>
 
-#include <rsb/transport/Connector.h>
+#include <boost/shared_ptr.hpp>
 
-#include "Bus.h"
+#include <rsb/Scope.h>
+
+#include <rsb/protocol/Notification.h>
+#include <rsb/protocol/FragmentedNotification.h>
+
+#include "SpreadMessage.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 
@@ -39,30 +44,32 @@ namespace rsb {
 namespace transport {
 namespace spread {
 
-/**
- * Base class for Spread connector classes.
- *
- * @author jmoringe
- */
-class RSBSPREAD_EXPORT ConnectorBase : public virtual transport::Connector {
+class RSBSPREAD_EXPORT Notification {
 public:
-    ConnectorBase(BusPtr bus);
-    virtual ~ConnectorBase();
-
-    virtual void printContents(std::ostream& stream) const;
-
-    virtual const std::string getTransportURL() const;
-
-    virtual bool isActive() const;
-
-    virtual void activate();
-
-    virtual void deactivate();
-protected:
-    bool   active;
-
-    BusPtr bus;
+    Scope                        scope;
+    std::string                  wireSchema;
+    std::string                  serializedPayload;
+    rsb::protocol::Notification* notification;
 };
+
+typedef boost::shared_ptr<Notification> NotificationPtr;
+
+class RSBSPREAD_EXPORT IncomingNotification : public Notification {
+public:
+    rsb::protocol::NotificationPtr notificationOwnership;
+};
+
+typedef boost::shared_ptr<IncomingNotification> IncomingNotificationPtr;
+
+
+class RSBSPREAD_EXPORT OutgoingNotification : public Notification {
+public:
+    SpreadMessage::QOS                                 qos;
+    std::vector<std::string>                           groups;
+    std::vector<rsb::protocol::FragmentedNotification> fragments;
+};
+
+typedef boost::shared_ptr<OutgoingNotification> OutgoingNotificationPtr;
 
 }
 }

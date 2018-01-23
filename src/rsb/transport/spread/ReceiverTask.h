@@ -34,11 +34,13 @@
 #include <rsc/logging/Logger.h>
 #include <rsc/threading/RepetitiveTask.h>
 
+#include <rsb/eventprocessing/ScopeDispatcher.h>
+
 #include <rsb/protocol/Notification.h>
-#include <rsb/protocol/FragmentedNotification.h>
 
 #include "SpreadConnection.h"
 #include "DeserializingHandler.h"
+#include "Notifications.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 
@@ -67,7 +69,8 @@ public:
 
     class Handler {
     public:
-        virtual void handleIncomingNotification(rsb::protocol::NotificationPtr notification) = 0;
+        virtual void handleIncomingNotification(IncomingNotificationPtr notification) = 0;
+
         virtual void handleError(const std::exception& error) = 0;
     };
     typedef boost::shared_ptr<Handler> HandlerPtr;

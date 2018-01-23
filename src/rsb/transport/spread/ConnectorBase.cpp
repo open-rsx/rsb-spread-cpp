@@ -32,19 +32,19 @@ namespace rsb {
 namespace transport {
 namespace spread {
 
-ConnectorBase::ConnectorBase(SpreadConnectionPtr connection) :
-    active(false), connection(connection) {
+ConnectorBase::ConnectorBase(BusPtr bus) :
+    active(false), bus(bus) {
 }
 
 ConnectorBase::~ConnectorBase() {}
 
 void ConnectorBase::printContents(std::ostream& stream) const {
     stream << "active = " << this->active
-           << ", connection = " << this->connection;
+           << ", bus = " << this->bus;
 }
 
 const std::string ConnectorBase::getTransportURL() const {
-    return this->connection->getTransportURL();
+    return this->bus->getTransportURL();
 }
 
 bool ConnectorBase::isActive() const {

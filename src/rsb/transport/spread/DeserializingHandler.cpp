@@ -46,11 +46,11 @@ void DeserializingHandler::setPruning(const bool& pruning) {
     this->assemblyPool->setPruning(pruning);
 }
 
-rsb::protocol::NotificationPtr
+IncomingNotificationPtr
 DeserializingHandler::handleMessage(const SpreadMessage& message) {
     // Ignore all non-regular messages.
     if (message.getType() != SpreadMessage::REGULAR) {
-        return rsb::protocol::NotificationPtr();
+        return IncomingNotificationPtr();
     }
 
     // Deserialize notification fragment from Spread message.
@@ -67,6 +67,24 @@ DeserializingHandler::handleMessage(const SpreadMessage& message) {
              << "/" << fragment->num_data_parts());
 
     // Assemble complete notification from parts, if necessary.
+    rsb::protocol::NotificationPtr notification
+        = maybeJoinFragments(fragment);
+    if (!notification) {
+        return IncomingNotificationPtr();
+    }
+
+    IncomingNotificationPtr result(new IncomingNotification());
+    result->scope                 = Scope(notification->scope());
+    result->wireSchema            = notification->wire_schema();
+    result->serializedPayload     = notification->data();
+    result->notification          = notification.get();
+    result->notificationOwnership = notification;
+    return result;
+}
+
+rsb::protocol::NotificationPtr
+DeserializingHandler::maybeJoinFragments(rsb::protocol::FragmentedNotificationPtr fragment) {
+    // Build data from parts.
     if (fragment->num_data_parts() > 1) {
         return this->assemblyPool->add(fragment);
     } else {

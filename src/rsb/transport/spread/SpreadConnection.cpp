@@ -246,7 +246,8 @@ void SpreadConnection::send(const SpreadMessage& message) {
     if (groups.size() == 1) { // use SP_multicast
         const std::string& group = *groups.begin();
         assert(group.size() < MAX_GROUP_NAME);
-        ret = SP_multicast(this->mailbox, message.getQOS(), group.c_str(), 0,
+        ret = SP_multicast(this->mailbox, message.getQOS() | SELF_DISCARD,
+                           group.c_str(), 0,
                            data.size(), data.c_str());
     } else { // use SP_multigroup_multicast
         char groupNames[SPREAD_MAX_GROUPS][MAX_GROUP_NAME];
@@ -258,7 +259,7 @@ void SpreadConnection::send(const SpreadMessage& message) {
             *end = '\0';
         }
         ret = SP_multigroup_multicast
-            (this->mailbox, message.getQOS(),
+            (this->mailbox, message.getQOS() | SELF_DISCARD,
              groups.size(), (const char(*)[MAX_GROUP_NAME]) groupNames, 0,
              data.size(), data.c_str());
     }

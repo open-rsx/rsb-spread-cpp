@@ -33,18 +33,14 @@
 
 #include <rsb/MetaData.h>
 
-#include "GroupNameCache.h"
-
 namespace rsb {
 namespace transport {
 namespace spread {
 
 InConnector::InConnector(ConverterSelectionStrategyPtr converters,
-                         SpreadConnectionPtr           connection) :
+                         BusPtr                        bus) :
     ConverterSelectingConnector<std::string>(converters),
-    ConnectorBase(connection),
-    logger(rsc::logging::Logger::getLogger("rsb.transport.spread.InConnector")),
-    memberships(connection),
+    ConnectorBase(bus),
     errorStrategy(ParticipantConfig::ERROR_STRATEGY_LOG) {
 }
 
@@ -53,9 +49,9 @@ InConnector::~InConnector() {}
 void InConnector::activate() {
     ConnectorBase::activate();
 
-    this->connection->activate();
-
-    this->memberships.join(GroupNameCache::scopeToGroup(this->scope));
+    this->bus->addSink(this->scope,
+                       boost::dynamic_pointer_cast<InConnector>
+                       (enable_shared_from_this<rsb::transport::InConnector>::shared_from_this()));
 
     this->active = true;
 }
@@ -63,9 +59,7 @@ void InConnector::activate() {
 void InConnector::deactivate() {
     ConnectorBase::deactivate();
 
-    this->memberships.leave(GroupNameCache::scopeToGroup(this->scope));
-
-    this->connection->deactivate();
+    this->bus->removeSink(this->scope, this);
 
     this->active = false;
 }
@@ -80,16 +74,16 @@ void InConnector::setErrorStrategy(ParticipantConfig::ErrorStrategy strategy) {
     this->errorStrategy = strategy;
 }
 
-EventPtr InConnector::notificationToEvent(rsb::protocol::NotificationPtr notification) {
+EventPtr InConnector::notificationToEvent(rsb::protocol::Notification& notification) {
     EventPtr event(new Event());
 
     try {
-        ConverterPtr converter = getConverter(notification->wire_schema());
+        ConverterPtr converter = getConverter(notification.wire_schema());
         AnnotatedData deserialized
-            = converter->deserialize(notification->wire_schema(),
-                                     notification->data());
+            = converter->deserialize(notification.wire_schema(),
+                                     notification.data());
 
-        fillEvent(event, *notification, deserialized.second, deserialized.first);
+        fillEvent(event, notification, deserialized.second, deserialized.first);
 
         event->mutableMetaData().setReceiveTime();
     } catch (const std::exception& exception) {
@@ -98,6 +92,11 @@ EventPtr InConnector::notificationToEvent(rsb::protocol::NotificationPtr notific
     }
 
     return event;
+}
+
+void InConnector::handleError(const std::exception& error) {
+    handleError("receiving Spread message", error,
+                "Skipping message", "Terminating");
 }
 
 void InConnector::handleError(const std::string&    context,

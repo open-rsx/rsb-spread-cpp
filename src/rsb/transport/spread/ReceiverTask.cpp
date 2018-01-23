@@ -48,7 +48,7 @@ void ReceiverTask::execute() {
         SpreadMessage message;
         this->connection->receive(message);
 
-        rsb::protocol::NotificationPtr notification
+        IncomingNotificationPtr notification
             = this->messageHandler.handleMessage(message);
         if (notification) {
             this->handler->handleIncomingNotification(notification);

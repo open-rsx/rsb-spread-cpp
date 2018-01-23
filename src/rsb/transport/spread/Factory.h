@@ -26,7 +26,12 @@
 
 #pragma once
 
+#include <string>
 #include <utility>
+
+#include <boost/shared_ptr.hpp>
+
+#include <boost/thread/mutex.hpp>
 
 #include <rsc/runtime/Properties.h>
 
@@ -34,7 +39,7 @@
 #include <rsb/transport/InPullConnector.h>
 #include <rsb/transport/OutConnector.h>
 
-#include "SpreadConnection.h"
+#include "Bus.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 
@@ -58,11 +63,17 @@ private:
 
     typedef std::pair<std::string, unsigned int> HostAndPort;
 
+    typedef std::map< HostAndPort, boost::weak_ptr<Bus> > BusMap;
+
     rsc::logging::LoggerPtr logger;
 
-    static HostAndPort parseOptions(const rsc::runtime::Properties& args);
+    BusMap                  buses;
 
-    static SpreadConnectionPtr createConnection(const HostAndPort& options);
+    boost::mutex            busesLock;
+
+    BusPtr obtainBus(const HostAndPort& options);
+
+    static HostAndPort parseOptions(const rsc::runtime::Properties& args);
 
 };
 

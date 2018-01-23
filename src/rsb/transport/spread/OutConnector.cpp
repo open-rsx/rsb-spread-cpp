@@ -49,10 +49,10 @@ namespace transport {
 namespace spread {
 
 OutConnector::OutConnector(ConverterSelectionStrategyPtr converters,
-                           SpreadConnectionPtr           connection,
+                           BusPtr                        bus,
                            unsigned int                  maxFragmentSize) :
     transport::ConverterSelectingConnector<string>(converters),
-    ConnectorBase(connection),
+    ConnectorBase(bus),
     logger(Logger::getLogger("rsb.transport.spread.OutConnector")),
     qosSpecs(QualityOfServiceSpec(QualityOfServiceSpec::ORDERED,
                                   QualityOfServiceSpec::RELIABLE)),
@@ -72,15 +72,11 @@ void OutConnector::setScope(const Scope& /*scope*/) {
 void OutConnector::activate() {
     ConnectorBase::activate();
 
-    this->connection->activate();
-
     this->active = true;
 }
 
 void OutConnector::deactivate() {
     ConnectorBase::deactivate();
-
-    this->connection->deactivate();
 
     this->active = false;
 }
@@ -113,28 +109,37 @@ void OutConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& specs) {
 }
 
 void OutConnector::handle(EventPtr event) {
-
-    // TODO exception handling if converter is not available
-    ConverterPtr c = getConverter(event->getType());
-    string wire;
-    string wireSchema = c->serialize(
-            make_pair(event->getType(), event->getData()), wire);
-
+    // Store send time in the event. The sending informer could in
+    // principle inspect this.
     event->mutableMetaData().setSendTime(rsc::misc::currentTimeMicros());
 
     // Create a list of all fragments required to send this event in
     // one or more Spread messages.
-    vector<rsb::protocol::FragmentedNotification> fragments;
+    OutgoingNotificationPtr notification(new OutgoingNotification());
+    notification->scope  = event->getScope();
+    notification->qos    = this->messageQOS;
+    notification->groups = this->groupNameCache.scopeToGroups(notification->scope);
+
+    // TODO exception handling if converter is not available
+    std::string& wire = notification->serializedPayload;
+    ConverterPtr converter = getConverter(event->getType());
+    std::string wireSchema
+        = converter->serialize(std::make_pair(event->getType(),
+                                              event->getData()),
+                               wire);
+    notification->wireSchema = wireSchema;
+
     for (unsigned int fragment = 0, offset = 0;
          (fragment == 0) || (offset < wire.size());
          ++fragment, offset += this->maxFragmentSize) {
         // Allocate and populate a new fragment. When processing the
         // first fragment, transmit all meta data.
-        fragments.resize(fragment + 1);
-        rsb::protocol::FragmentedNotification& fragmentNotification
-            = fragments.back();
+        notification->fragments.resize(fragment + 1);
+        FragmentedNotification& fragmentNotification
+            = notification->fragments.back();
         fillNotificationId(*(fragmentNotification.mutable_notification()), event);
         if (fragment == 0) {
+            notification->notification = fragmentNotification.mutable_notification();
             fillNotificationHeader(*(fragmentNotification.mutable_notification()),
                                    event, wireSchema);
         }
@@ -156,29 +161,7 @@ void OutConnector::handle(EventPtr event) {
         fragmentNotification.set_num_data_parts(1);
     }
 
-    // Send a message for each fragment.
-    SpreadMessage message;
-    message.setQOS(this->messageQOS);
-    const std::vector<std::string>& groups
-        = this->groupNameCache.scopeToGroups(event->getScope());
-    for (std::vector<std::string>::const_iterator it = groups.begin();
-         it != groups.end(); ++it) {
-        message.addGroup(*it);
-    }
-
-    for (std::vector<FragmentedNotification>::iterator it
-             = fragments.begin(); it != fragments.end(); ++it) {
-        it->set_num_data_parts(fragments.size());
-
-        if (!(it->SerializeToString(&message.mutableData()))) {
-            throw ProtocolException("Failed to write notification to stream");
-        }
-
-        this->connection->send(message);
-        // TODO implement queuing or throw messages away?
-        // TODO maybe return exception with msg that was not sent
-        // TODO especially important to fulfill QoS specs
-    }
+    this->bus->handleOutgoingNotification(notification);
 }
 
 }

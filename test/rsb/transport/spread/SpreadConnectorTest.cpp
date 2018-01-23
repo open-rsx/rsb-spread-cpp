@@ -3,7 +3,7 @@
  * This file is part of the rsb-spread project
  *
  * Copyright (C) 2010 Sebastian Wrede <swrede@techfak.uni-bielefeld.de>
- * Copyright (C) 2012, 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2012-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -30,6 +30,7 @@
 
 #include "rsb/converter/Repository.h"
 
+#include <rsb/transport/spread/Bus.h>
 #include <rsb/transport/spread/InPullConnector.h>
 #include <rsb/transport/spread/InPushConnector.h>
 #include <rsb/transport/spread/OutConnector.h>
@@ -49,27 +50,30 @@ using namespace rsb::transport::spread;
 static int dummy = pullInConnectorTest();
 
 InPullConnectorPtr createSpreadInPullConnector() {
-    return InPullConnectorPtr(
-            new rsb::transport::spread::InPullConnector(
-                    converterRepository<string>()->getConvertersForDeserialization(),
-                    SpreadConnectionPtr(
-                            new SpreadConnection(defaultHost(), SPREAD_PORT))));
+    BusPtr bus(Bus::create(SpreadConnectionPtr(new SpreadConnection(defaultHost(), SPREAD_PORT))));
+    bus->activate();
+    return InPullConnectorPtr(new rsb::transport::spread::InPullConnector
+                              (converterRepository<string>()
+                               ->getConvertersForDeserialization(),
+                               bus));
 }
 
 InPushConnectorPtr createSpreadInPushConnector() {
-    return InPushConnectorPtr(
-            new rsb::transport::spread::InPushConnector(
-                    converterRepository<string>()->getConvertersForDeserialization(),
-                    SpreadConnectionPtr(
-                            new SpreadConnection(defaultHost(), SPREAD_PORT))));
+    BusPtr bus(Bus::create(SpreadConnectionPtr(new SpreadConnection(defaultHost(), SPREAD_PORT))));
+    bus->activate();
+    return InPushConnectorPtr(new rsb::transport::spread::InPushConnector
+                              (converterRepository<string>()
+                               ->getConvertersForDeserialization(),
+                               bus));
 }
 
 OutConnectorPtr createSpreadOutConnector() {
-    return OutConnectorPtr(
-            new rsb::transport::spread::OutConnector(
-                    converterRepository<string>()->getConvertersForSerialization(),
-                    SpreadConnectionPtr(
-                            new SpreadConnection(defaultHost(), SPREAD_PORT))));
+    BusPtr bus(Bus::create(SpreadConnectionPtr(new SpreadConnection(defaultHost(), SPREAD_PORT))));
+    bus->activate();
+    return OutConnectorPtr(new rsb::transport::spread::OutConnector
+                           (converterRepository<string>()
+                            ->getConvertersForSerialization(),
+                            bus));
 }
 
 const ConnectorTestSetup spreadSetup(createSpreadInPullConnector,

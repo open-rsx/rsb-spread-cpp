@@ -30,16 +30,13 @@
 
 #include <string>
 
-#include <rsc/threading/TaskExecutor.h>
-
 #include <rsb/protocol/Notification.h>
 
 #include <rsb/transport/InPushConnector.h>
 
-#include "InConnector.h"
+#include "Notifications.h"
 
-#include "ReceiverTask.h"
-#include "SpreadConnection.h"
+#include "InConnector.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 
@@ -59,24 +56,14 @@ class RSBSPREAD_EXPORT InPushConnector: public virtual transport::InPushConnecto
                                         public virtual InConnector {
 public:
     InPushConnector(ConverterSelectionStrategyPtr converters,
-                    SpreadConnectionPtr           connection);
+                    BusPtr                        bus);
     virtual ~InPushConnector();
-
-    void activate();
-    void deactivate();
 
     void setQualityOfServiceSpecs(const QualityOfServiceSpec& specs);
 
-    void handleIncomingNotification(rsb::protocol::NotificationPtr notification);
+    void handleNotification(NotificationPtr notification);
 private:
-    class Handler;
-    typedef boost::shared_ptr<Handler> HandlerPtr;
-
-    rsc::logging::LoggerPtr         logger;
-
-    rsc::threading::TaskExecutorPtr exec;
-    boost::shared_ptr<ReceiverTask> rec;
-    HandlerPtr                      handler;
+    rsc::logging::LoggerPtr logger;
 };
 
 }

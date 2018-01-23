@@ -29,8 +29,6 @@
 
 #include <rsc/threading/ThreadedTaskExecutor.h>
 
-#include "ReceiverTask.h"
-
 using namespace std;
 
 using namespace rsc::logging;
@@ -43,33 +41,11 @@ namespace rsb {
 namespace transport {
 namespace spread {
 
-class InPushConnector::Handler : public ReceiverTask::Handler {
-public:
-    Handler(InPushConnector* connector) :
-        connector(connector) {
-    }
-
-    void handleIncomingNotification(rsb::protocol::NotificationPtr notification) {
-        this->connector->handleIncomingNotification(notification);
-    }
-
-    void handleError(const std::exception& error) {
-        this->connector->handleError("receiving Spread message", error,
-                                     "Skipping message", "Terminating");
-    }
-
-    InPushConnector* connector;
-};
-
 InPushConnector::InPushConnector(const ConverterSelectionStrategyPtr converters,
-                                 SpreadConnectionPtr                 connection) :
+                                 BusPtr                              bus) :
     transport::ConverterSelectingConnector<string>(converters),
-    ConnectorBase(connection),
-    InConnector(converters, connection),
-    logger(Logger::getLogger("rsb.transport.spread.InPushConnector")),
-    exec(new ThreadedTaskExecutor),
-    handler(new Handler(this)) {
-    this->rec.reset(new ReceiverTask(connection, this->handler));
+    ConnectorBase(bus), InConnector(converters, bus),
+    logger(Logger::getLogger("rsb.transport.spread.InPushConnector")) {
 }
 
 InPushConnector::~InPushConnector() {
@@ -78,31 +54,12 @@ InPushConnector::~InPushConnector() {
     }
 }
 
-void InPushConnector::activate() {
-    InConnector::activate();
-
-    // (re-)start threads
-    this->exec->schedule(rec);
-
-    this->active = true;
+void InPushConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& /*specs*/) {
+    // TODO ?->setPruning(specs.getReliability() < QualityOfServiceSpec::RELIABLE);
 }
 
-void InPushConnector::deactivate() {
-    this->rec->cancel();
-    this->connection->interruptReceive();
-    this->rec->waitDone();
-
-    InConnector::deactivate();
-
-    this->active = false;
-}
-
-void InPushConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& specs) {
-    this->rec->setPruning(specs.getReliability() < QualityOfServiceSpec::RELIABLE);
-}
-
-void InPushConnector::handleIncomingNotification(rsb::protocol::NotificationPtr notification) {
-    EventPtr event = notificationToEvent(notification);
+void InPushConnector::handleNotification(NotificationPtr notification) {
+    EventPtr event = notificationToEvent(*notification->notification);
 
     if (event) {
         try {

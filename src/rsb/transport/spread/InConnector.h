@@ -39,8 +39,7 @@
 #include <rsb/transport/ConverterSelectingConnector.h>
 
 #include "ConnectorBase.h"
-#include "SpreadConnection.h"
-#include "MembershipManager.h"
+#include "Bus.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 
@@ -55,10 +54,11 @@ namespace spread {
  */
 class RSBSPREAD_EXPORT InConnector : public virtual transport::InPushConnector,
                                      public virtual ConverterSelectingConnector<std::string>,
-                                     public virtual ConnectorBase {
+                                     public virtual ConnectorBase,
+                                     public virtual Bus::Sink {
 public:
     InConnector(ConverterSelectionStrategyPtr converters,
-                SpreadConnectionPtr           connection);
+                BusPtr                        bus);
     virtual ~InConnector();
 
     virtual void activate();
@@ -67,15 +67,16 @@ public:
     virtual void setScope(const Scope& scope);
 
     virtual void setErrorStrategy(ParticipantConfig::ErrorStrategy strategy);
+
+    virtual void handleError(const std::exception& error);
 protected:
     rsc::logging::LoggerPtr          logger;
 
-    MembershipManager                memberships;
     Scope                            scope;
 
     ParticipantConfig::ErrorStrategy errorStrategy;
 
-    EventPtr notificationToEvent(rsb::protocol::NotificationPtr notification);
+    EventPtr notificationToEvent(rsb::protocol::Notification& notification);
 
     virtual void handleError(const std::string&    context,
                              const std::exception& exception,

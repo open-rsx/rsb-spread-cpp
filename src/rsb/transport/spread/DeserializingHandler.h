@@ -28,11 +28,11 @@
 
 #include <rsc/logging/Logger.h>
 
-#include <rsb/protocol/Notification.h>
 #include <rsb/protocol/FragmentedNotification.h>
 
 #include "SpreadMessage.h"
 #include "Assembly.h"
+#include "Notifications.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 
@@ -68,11 +68,14 @@ public:
      * @param message Spread message to handle
      * @return pointer to the joined notification
      */
-    rsb::protocol::NotificationPtr handleMessage(const SpreadMessage& message);
+    IncomingNotificationPtr handleMessage(const SpreadMessage& message);
 private:
     rsc::logging::LoggerPtr logger;
 
     AssemblyPoolPtr assemblyPool;
+
+    rsb::protocol::NotificationPtr
+    maybeJoinFragments(rsb::protocol::FragmentedNotificationPtr fragment);
 };
 
 }

@@ -28,12 +28,15 @@
 
 #include <string>
 
+#include <rsc/threading/SynchronizedQueue.h>
+
 #include <rsb/transport/InPullConnector.h>
 
 #include "InConnector.h"
 
-#include "SpreadConnection.h"
-#include "DeserializingHandler.h"
+#include "Notifications.h"
+
+#include "Bus.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 
@@ -51,20 +54,20 @@ class RSBSPREAD_EXPORT InPullConnector: public virtual transport::InPullConnecto
                                         public virtual InConnector {
 public:
     InPullConnector(ConverterSelectionStrategyPtr converters,
-                    SpreadConnectionPtr           connection);
+                    BusPtr                        bus);
     virtual ~InPullConnector();
-
-    void activate();
-    void deactivate();
 
     void setQualityOfServiceSpecs(const QualityOfServiceSpec& specs);
 
     EventPtr raiseEvent(bool block);
 
+    void handleNotification(NotificationPtr notification);
 private:
+    typedef rsc::threading::SynchronizedQueue<NotificationPtr> NotificationQueue;
+
     rsc::logging::LoggerPtr logger;
 
-    DeserializingHandler    messageHandler;
+    NotificationQueue       queue;
 };
 
 }

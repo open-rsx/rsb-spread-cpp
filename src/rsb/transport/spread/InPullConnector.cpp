@@ -39,10 +39,9 @@ namespace transport {
 namespace spread {
 
 InPullConnector::InPullConnector(ConverterSelectionStrategyPtr converters,
-                                 SpreadConnectionPtr           connection) :
+                                 BusPtr                        bus) :
     ConverterSelectingConnector<std::string>(converters),
-    ConnectorBase(connection),
-    InConnector(converters, connection),
+    ConnectorBase(bus), InConnector(converters, bus),
     logger(Logger::getLogger("rsb.transport.spread.InPullConnector")) {
 }
 
@@ -52,18 +51,6 @@ InPullConnector::~InPullConnector() {
     }
 }
 
-void InPullConnector::activate() {
-    InConnector::activate();
-
-    this->active = true;
-}
-
-void InPullConnector::deactivate() {
-    InConnector::deactivate();
-
-    this->active = false;
-}
-
 void InPullConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& /*specs*/) {
 }
 
@@ -71,22 +58,13 @@ EventPtr InPullConnector::raiseEvent(bool block) {
     assert(block);
 
     SpreadMessage message;
-    rsb::protocol::NotificationPtr notification;
-    EventPtr event;
     while (true) {
-        try {
-            this->connection->receive(message);
-
-            notification = this->messageHandler.handleMessage(message);
-        } catch (const std::exception& exception) {
-            handleError("receiving notification", exception,
-                        "Skipping notification", "Terminating");
-        }
+        NotificationPtr notification = this->queue.pop();
         if (!notification) {
             continue;
         }
 
-        EventPtr event = notificationToEvent(notification);
+        EventPtr event = notificationToEvent(*notification->notification);
         if (!event) {
             continue;
         }
@@ -95,6 +73,10 @@ EventPtr InPullConnector::raiseEvent(bool block) {
     };
     // This should never happen so far unless non-blocking (not implemented so far)
     return EventPtr();
+}
+
+void InPullConnector::handleNotification(NotificationPtr notification) {
+    this->queue.push(notification);
 }
 
 }

@@ -36,7 +36,8 @@
 
 #include "ConnectorBase.h"
 
-#include "SpreadConnection.h"
+#include "Bus.h"
+
 #include "GroupNameCache.h"
 #include "SpreadMessage.h"
 
@@ -54,7 +55,7 @@ class RSBSPREAD_EXPORT OutConnector: public virtual transport::OutConnector,
                                      public virtual ConnectorBase {
 public:
     OutConnector(ConverterSelectionStrategyPtr converters,
-                 SpreadConnectionPtr           connection,
+                 BusPtr                        bus,
                  unsigned int                  maxFragmentSize = 100000);
     virtual ~OutConnector();
 

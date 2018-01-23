@@ -44,12 +44,40 @@ Factory::Factory()
     : logger(rsc::logging::Logger::getLogger("rsb.transport.spread.Factory")) {
 }
 
-SpreadConnectionPtr Factory::createConnection(const HostAndPort& options) {
-    return SpreadConnectionPtr(new SpreadConnection(options.first, options.second));
+BusPtr Factory::obtainBus(const HostAndPort& options) {
+    RSCDEBUG(this->logger, (boost::format("Obtaining bus for host = %1%, port = %2%")
+                            % options.first % options.second));
+
+    {
+        boost::mutex::scoped_lock lock(this->busesLock);
+
+        // Try to find an existing Bus instance for options. If there
+        // is an instance, try to lock the pointer to see whether it
+        // is still alive. If so, return it.
+        BusMap::iterator it = this->buses.find(options);
+        if (it != this->buses.end()) {
+            BusPtr bus = it->second.lock();
+            if (bus) {
+                RSCDEBUG(this->logger, (boost::format("Found existing %1%") % bus));
+                return bus;
+            } else {
+                this->buses.erase(it);
+            }
+        }
+
+        // If there was no suitable Bus instance or the existing
+        // instance was dead, create a new one and store a weak
+        // pointer in the map.
+        SpreadConnectionPtr connection(new SpreadConnection(options.first, options.second));
+        BusPtr bus = Bus::create(connection);
+        RSCDEBUG(this->logger, (boost::format("Created new %1%") % bus));
+        bus->activate();
+        this->buses[options] = bus;
+        return bus;
+    }
 }
 
-Factory::HostAndPort Factory::parseOptions(
-        const rsc::runtime::Properties& args) {
+Factory::HostAndPort Factory::parseOptions(const rsc::runtime::Properties& args) {
     return make_pair(args.get  <string>      ("host", defaultHost()),
                      args.getAs<unsigned int>("port", defaultPort()));
 }
@@ -60,7 +88,7 @@ Factory::createInPushConnector(const rsc::runtime::Properties& args) {
 
     return new InPushConnector(
             args.get<ConverterSelectionStrategyPtr>("converters"),
-            createConnection(parseOptions(args)));
+            obtainBus(parseOptions(args)));
 }
 
 rsb::transport::InPullConnector*
@@ -69,15 +97,16 @@ Factory::createInPullConnector(const rsc::runtime::Properties& args) {
 
     return new InPullConnector(
             args.get<ConverterSelectionStrategyPtr>("converters"),
-            createConnection(parseOptions(args)));
+            obtainBus(parseOptions(args)));
 }
 
 rsb::transport::OutConnector*
 Factory::createOutConnector(const rsc::runtime::Properties& args) {
     RSCDEBUG(this->logger, "creating OutConnector with properties " << args);
+
     return new OutConnector(
             args.get<ConverterSelectionStrategyPtr>("converters"),
-            createConnection(parseOptions(args)),
+            obtainBus(parseOptions(args)),
             args.getAs<unsigned int>("maxfragmentsize", 100000));
 }
 
