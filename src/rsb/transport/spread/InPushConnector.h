@@ -34,16 +34,13 @@
 
 #include <rsb/protocol/Notification.h>
 
-#include <rsb/Scope.h>
-
 #include <rsb/transport/InPushConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
-#include "ConnectorBase.h"
+#include "InConnector.h"
 
 #include "ReceiverTask.h"
 #include "SpreadConnection.h"
-#include "MembershipManager.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
 
@@ -61,13 +58,11 @@ class ReceiverTask;
  */
 class RSBSPREAD_EXPORT InPushConnector: public virtual transport::InPushConnector,
                                         public virtual transport::ConverterSelectingConnector<std::string>,
-                                        public virtual ConnectorBase {
+                                        public virtual InConnector {
 public:
     InPushConnector(ConverterSelectionStrategyPtr converters,
                     SpreadConnectionPtr           connection);
     virtual ~InPushConnector();
-
-    void setScope(const Scope& scope);
 
     void activate();
     void deactivate();
@@ -82,9 +77,6 @@ private:
     typedef boost::shared_ptr<Handler> HandlerPtr;
 
     rsc::logging::LoggerPtr         logger;
-
-    MembershipManager               memberships;
-    boost::shared_ptr<Scope>        activationScope;
 
     rsc::threading::TaskExecutorPtr exec;
     boost::shared_ptr<ReceiverTask> rec;

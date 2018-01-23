@@ -29,7 +29,6 @@
 
 #include <rsb/MetaData.h>
 #include <rsb/EventId.h>
-#include "GroupNameCache.h"
 
 using namespace std;
 
@@ -46,8 +45,8 @@ InPullConnector::InPullConnector(ConverterSelectionStrategyPtr converters,
                                  SpreadConnectionPtr           connection) :
     ConverterSelectingConnector<std::string>(converters),
     ConnectorBase(connection),
-    logger(Logger::getLogger("rsb.transport.spread.InPullConnector")),
-    memberships(connection) {
+    InConnector(connection),
+    logger(Logger::getLogger("rsb.transport.spread.InPullConnector")) {
 }
 
 InPullConnector::~InPullConnector() {
@@ -57,34 +56,18 @@ InPullConnector::~InPullConnector() {
 }
 
 void InPullConnector::activate() {
-    ConnectorBase::activate();
+    InConnector::activate();
 
-    this->connection->activate();
     this->active = true;
-
-    // check that scope is applied
-    if (activationScope) {
-        setScope(*activationScope);
-        activationScope.reset();
-    }
 }
 
 void InPullConnector::deactivate() {
-    ConnectorBase::deactivate();
+    InConnector::deactivate();
 
-    this->connection->deactivate();
     this->active = false;
 }
 
 void InPullConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& /*specs*/) {
-}
-
-void InPullConnector::setScope(const Scope& scope) {
-    if (!this->active) {
-        this->activationScope.reset(new Scope(scope));
-    } else {
-        this->memberships.join(GroupNameCache::scopeToGroup(scope));
-    }
 }
 
 EventPtr InPullConnector::raiseEvent(bool block) {

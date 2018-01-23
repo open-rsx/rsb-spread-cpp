@@ -31,7 +31,6 @@
 
 #include <rsb/MetaData.h>
 
-#include "GroupNameCache.h"
 #include "ReceiverTask.h"
 
 using namespace std;
@@ -63,8 +62,8 @@ InPushConnector::InPushConnector(const ConverterSelectionStrategyPtr converters,
                                  SpreadConnectionPtr                 connection) :
     transport::ConverterSelectingConnector<string>(converters),
     ConnectorBase(connection),
+    InConnector(connection),
     logger(Logger::getLogger("rsb.transport.spread.InPushConnector")),
-    memberships(connection),
     exec(new ThreadedTaskExecutor),
     handler(new Handler(this)) {
     this->rec.reset(new ReceiverTask(connection, this->handler));
@@ -77,44 +76,26 @@ InPushConnector::~InPushConnector() {
 }
 
 void InPushConnector::activate() {
-    ConnectorBase::activate();
-
-    this->connection->activate();
+    InConnector::activate();
 
     // (re-)start threads
     this->exec->schedule(rec);
+
     this->active = true;
-
-    // check that scope is applied
-    if (activationScope) {
-        setScope(*activationScope);
-        activationScope.reset();
-    }
-
 }
 
 void InPushConnector::deactivate() {
-    ConnectorBase::deactivate();
-
     this->rec->cancel();
-    if (this->connection->isActive()) {
-        this->connection->interruptReceive();
-        this->rec->waitDone();
-    }
-    this->connection->deactivate();
+    this->connection->interruptReceive();
+    this->rec->waitDone();
+
+    InConnector::deactivate();
+
     this->active = false;
 }
 
 void InPushConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& specs) {
     this->rec->setPruning(specs.getReliability() < QualityOfServiceSpec::RELIABLE);
-}
-
-void InPushConnector::setScope(const Scope& scope) {
-    if (!active) {
-        activationScope.reset(new Scope(scope));
-    } else {
-        this->memberships.join(GroupNameCache::scopeToGroup(scope));
-    }
 }
 
 void InPushConnector::setErrorStrategy(ParticipantConfig::ErrorStrategy strategy) {
