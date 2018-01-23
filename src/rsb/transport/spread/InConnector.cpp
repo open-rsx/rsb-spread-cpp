@@ -31,14 +31,19 @@
 #include <rsc/misc/langutils.h>
 #include <rsc/debug/DebugTools.h>
 
+#include <rsb/MetaData.h>
+
 #include "GroupNameCache.h"
 
 namespace rsb {
 namespace transport {
 namespace spread {
 
-InConnector::InConnector(SpreadConnectionPtr connection) :
+InConnector::InConnector(ConverterSelectionStrategyPtr converters,
+                         SpreadConnectionPtr           connection) :
+    ConverterSelectingConnector<std::string>(converters),
     ConnectorBase(connection),
+    logger(rsc::logging::Logger::getLogger("rsb.transport.spread.InConnector")),
     memberships(connection),
     errorStrategy(ParticipantConfig::ERROR_STRATEGY_PRINT) {
 }
@@ -73,6 +78,28 @@ void InConnector::setScope(const Scope& scope) {
 
 void InConnector::setErrorStrategy(ParticipantConfig::ErrorStrategy strategy) {
     this->errorStrategy = strategy;
+}
+
+EventPtr InConnector::notificationToEvent(rsb::protocol::NotificationPtr notification) {
+    EventPtr event(new Event());
+
+    // TODO fix error handling, see bug #796
+    try {
+        ConverterPtr converter = getConverter(notification->wire_schema());
+        AnnotatedData deserialized
+            = converter->deserialize(notification->wire_schema(),
+                                     notification->data());
+
+        fillEvent(event, *notification, deserialized.second, deserialized.first);
+
+        event->mutableMetaData().setReceiveTime();
+    } catch (const std::exception& ex) {
+        RSCWARN(this->logger, "InConnector::notificationToEvent caught std exception: " << ex.what() );
+    } catch (...) {
+        RSCWARN(this->logger, "InConnector::notificationToEvent caught unknown exception" );
+    }
+
+    return event;
 }
 
 }

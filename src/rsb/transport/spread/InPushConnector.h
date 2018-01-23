@@ -35,7 +35,6 @@
 #include <rsb/protocol/Notification.h>
 
 #include <rsb/transport/InPushConnector.h>
-#include <rsb/transport/ConverterSelectingConnector.h>
 
 #include "InConnector.h"
 
@@ -57,7 +56,6 @@ class ReceiverTask;
  * @author jmoringe
  */
 class RSBSPREAD_EXPORT InPushConnector: public virtual transport::InPushConnector,
-                                        public virtual transport::ConverterSelectingConnector<std::string>,
                                         public virtual InConnector {
 public:
     InPushConnector(ConverterSelectionStrategyPtr converters,

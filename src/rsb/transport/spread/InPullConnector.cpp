@@ -27,9 +27,6 @@
 
 #include "InPullConnector.h"
 
-#include <rsb/MetaData.h>
-#include <rsb/EventId.h>
-
 using namespace std;
 
 using namespace rsc::logging;
@@ -45,7 +42,7 @@ InPullConnector::InPullConnector(ConverterSelectionStrategyPtr converters,
                                  SpreadConnectionPtr           connection) :
     ConverterSelectingConnector<std::string>(converters),
     ConnectorBase(connection),
-    InConnector(connection),
+    InConnector(converters, connection),
     logger(Logger::getLogger("rsb.transport.spread.InPullConnector")) {
 }
 
@@ -84,7 +81,7 @@ EventPtr InPullConnector::raiseEvent(bool block) {
             continue;
         }
 
-        EventPtr event = handleIncomingNotification(notification);
+        EventPtr event = notificationToEvent(notification);
         if (!event) {
             continue;
         }
@@ -92,28 +89,6 @@ EventPtr InPullConnector::raiseEvent(bool block) {
     };
     // This should never happen so far unless non-blocking (not implemented so far)
     return EventPtr();
-}
-
-EventPtr InPullConnector::handleIncomingNotification(rsb::protocol::NotificationPtr notification) {
-    EventPtr event(new Event());
-
-    // TODO fix error handling, see #796
-    try {
-        ConverterPtr converter = getConverter(notification->wire_schema());
-        AnnotatedData deserialized
-            = converter->deserialize(notification->wire_schema(),
-                                     notification->data());
-
-        fillEvent(event, *notification, deserialized.second, deserialized.first);
-
-        event->mutableMetaData().setReceiveTime();
-    } catch (const std::exception& ex) {
-        RSCWARN(this->logger, "InPushConnector::handleIncomingNotification caught std exception: " << ex.what() );
-    } catch (...) {
-        RSCWARN(this->logger, "InPushConnector::handleIncomingNotification caught unknown exception" );
-    }
-
-    return event;
 }
 
 }

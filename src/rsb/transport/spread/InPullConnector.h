@@ -29,7 +29,6 @@
 #include <string>
 
 #include <rsb/transport/InPullConnector.h>
-#include <rsb/transport/ConverterSelectingConnector.h>
 
 #include "InConnector.h"
 
@@ -49,11 +48,8 @@ namespace spread {
  * @author jmoringe
  */
 class RSBSPREAD_EXPORT InPullConnector: public virtual transport::InPullConnector,
-                                        public virtual transport::ConverterSelectingConnector<std::string>,
                                         public virtual InConnector {
 public:
-    typedef converter::ConverterSelectionStrategy<std::string>::Ptr ConverterSelectionStrategyPtr;
-
     InPullConnector(ConverterSelectionStrategyPtr converters,
                     SpreadConnectionPtr           connection);
     virtual ~InPullConnector();
@@ -69,8 +65,6 @@ private:
     rsc::logging::LoggerPtr logger;
 
     DeserializingHandler    messageHandler;
-
-    EventPtr handleIncomingNotification(rsb::protocol::NotificationPtr notification);
 };
 
 }

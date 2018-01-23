@@ -28,10 +28,15 @@
 
 #include <stdexcept>
 
+#include <rsc/logging/Logger.h>
+
 #include <rsb/Scope.h>
 #include <rsb/ParticipantConfig.h>
 
+#include <rsb/protocol/Notification.h>
+
 #include <rsb/transport/InPushConnector.h>
+#include <rsb/transport/ConverterSelectingConnector.h>
 
 #include "ConnectorBase.h"
 #include "SpreadConnection.h"
@@ -49,9 +54,11 @@ namespace spread {
  * @author jmoringe
  */
 class RSBSPREAD_EXPORT InConnector : public virtual transport::InPushConnector,
+                                     public virtual ConverterSelectingConnector<std::string>,
                                      public virtual ConnectorBase {
 public:
-    InConnector(SpreadConnectionPtr connection);
+    InConnector(ConverterSelectionStrategyPtr converters,
+                SpreadConnectionPtr           connection);
     virtual ~InConnector();
 
     virtual void activate();
@@ -61,10 +68,14 @@ public:
 
     virtual void setErrorStrategy(ParticipantConfig::ErrorStrategy strategy);
 protected:
+    rsc::logging::LoggerPtr          logger;
+
     MembershipManager                memberships;
     Scope                            scope;
 
     ParticipantConfig::ErrorStrategy errorStrategy;
+
+    EventPtr notificationToEvent(rsb::protocol::NotificationPtr notification);
 };
 
 }
