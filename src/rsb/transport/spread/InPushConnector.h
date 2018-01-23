@@ -67,8 +67,6 @@ public:
 
     void setQualityOfServiceSpecs(const QualityOfServiceSpec& specs);
 
-    void setErrorStrategy(ParticipantConfig::ErrorStrategy strategy);
-
     void handleIncomingNotification(rsb::protocol::NotificationPtr notification);
 private:
     class Handler;

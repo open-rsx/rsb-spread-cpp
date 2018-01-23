@@ -27,14 +27,7 @@
 
 #include "ReceiverTask.h"
 
-#include <boost/format.hpp>
-
-#include <rsc/misc/langutils.h>
-#include <rsc/debug/DebugTools.h>
-
 #include <rsb/CommException.h>
-
-using namespace std;
 
 namespace rsb {
 namespace transport {
@@ -43,8 +36,7 @@ namespace spread {
 ReceiverTask::ReceiverTask(SpreadConnectionPtr connection,
                            HandlerPtr          handler) :
     logger(rsc::logging::Logger::getLogger("rsb.transport.spread.ReceiverTask")),
-    connection(connection), handler(handler),
-    errorStrategy(ParticipantConfig::ERROR_STRATEGY_PRINT) {
+    connection(connection), handler(handler) {
 }
 
 ReceiverTask::~ReceiverTask() {
@@ -61,41 +53,16 @@ void ReceiverTask::execute() {
         if (notification) {
             this->handler->handleIncomingNotification(notification);
         }
-    } catch (rsb::CommException& e) {
-        // TODO QoS would not like swallowing the exception
-        rsc::debug::DebugToolsPtr tools = rsc::debug::DebugTools::newInstance();
-        std::string message
-            = boost::str(boost::format("Error receiving spread message: %1%\n%2%\n")
-                         % e.what() % tools->exceptionInfo(e));
-        switch (this->errorStrategy) {
-        case ParticipantConfig::ERROR_STRATEGY_PRINT:
-            cerr << message
-                 << "Terminating receiving new spread messages!" << endl;
-            break;
-        case ParticipantConfig::ERROR_STRATEGY_EXIT:
-            RSCFATAL(this->logger, message
-                     << "\nTerminating the process as requested via configuration.");
-            exit(1);
-            break;
-        case ParticipantConfig::ERROR_STRATEGY_LOG:
-        default:
-            assert(false);
-            RSCERROR(this->logger, message
-                     << "\nTerminating receiving new spread messages!");
-            break;
-        }
+    } catch (const rsb::CommException& exception) {
+        this->handler->handleError(exception);
         this->cancel();
-    } catch (boost::thread_interrupted& e) {
+    } catch (const boost::thread_interrupted&) {
         return;
     }
 }
 
 void ReceiverTask::setPruning(const bool& pruning) {
     this->messageHandler.setPruning(pruning);
-}
-
-void ReceiverTask::setErrorStrategy(ParticipantConfig::ErrorStrategy strategy) {
-    this->errorStrategy = strategy;
 }
 
 }

@@ -76,6 +76,11 @@ protected:
     ParticipantConfig::ErrorStrategy errorStrategy;
 
     EventPtr notificationToEvent(rsb::protocol::NotificationPtr notification);
+
+    virtual void handleError(const std::string&    context,
+                             const std::exception& exception,
+                             const std::string&    continueDescription,
+                             const std::string&    abortDescription);
 };
 
 }

@@ -53,6 +53,11 @@ public:
         this->connector->handleIncomingNotification(notification);
     }
 
+    void handleError(const std::exception& error) {
+        this->connector->handleError("receiving Spread message", error,
+                                     "Skipping message", "Terminating");
+    }
+
     InPushConnector* connector;
 };
 
@@ -96,24 +101,18 @@ void InPushConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& specs
     this->rec->setPruning(specs.getReliability() < QualityOfServiceSpec::RELIABLE);
 }
 
-void InPushConnector::setErrorStrategy(ParticipantConfig::ErrorStrategy strategy) {
-    this->rec->setErrorStrategy(strategy);
-}
-
 void InPushConnector::handleIncomingNotification(rsb::protocol::NotificationPtr notification) {
     EventPtr event = notificationToEvent(notification);
 
-    // TODO fix error handling, see #796
     if (event) {
         try {
             for (std::list<eventprocessing::HandlerPtr>::iterator it = this->handlers.begin();
                  it != this->handlers.end(); ++it) {
                 (*it)->handle(event);
             }
-        } catch (const std::exception& ex) {
-            RSCWARN(this->logger, "InPushConnector::handleIncomingNotification caught std exception: " << ex.what() );
-        } catch (...) {
-            RSCWARN(this->logger, "InPushConnector::handleIncomingNotification caught unknown exception" );
+        } catch (const std::exception& exception) {
+            handleError("dispatching event to handlers", exception,
+                        "Continuing with next event", "Terminating");
         }
     }
 }

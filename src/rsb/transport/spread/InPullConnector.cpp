@@ -71,12 +71,17 @@ EventPtr InPullConnector::raiseEvent(bool block) {
     assert(block);
 
     SpreadMessage message;
+    rsb::protocol::NotificationPtr notification;
     EventPtr event;
     while (true) {
-        this->connection->receive(message);
+        try {
+            this->connection->receive(message);
 
-        rsb::protocol::NotificationPtr notification
-            = this->messageHandler.handleMessage(message);
+            notification = this->messageHandler.handleMessage(message);
+        } catch (const std::exception& exception) {
+            handleError("receiving notification", exception,
+                        "Skipping notification", "Terminating");
+        }
         if (!notification) {
             continue;
         }
@@ -85,6 +90,7 @@ EventPtr InPullConnector::raiseEvent(bool block) {
         if (!event) {
             continue;
         }
+
         return event;
     };
     // This should never happen so far unless non-blocking (not implemented so far)

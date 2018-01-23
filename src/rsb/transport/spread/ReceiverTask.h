@@ -34,8 +34,6 @@
 #include <rsc/logging/Logger.h>
 #include <rsc/threading/RepetitiveTask.h>
 
-#include <rsb/ParticipantConfig.h>
-
 #include <rsb/protocol/Notification.h>
 #include <rsb/protocol/FragmentedNotification.h>
 
@@ -62,6 +60,7 @@ namespace spread {
  *
  * @author swrede
  * @author jwienke
+ * @author jmoringe
  */
 class RSBSPREAD_EXPORT ReceiverTask: public rsc::threading::RepetitiveTask {
 public:
@@ -69,6 +68,7 @@ public:
     class Handler {
     public:
         virtual void handleIncomingNotification(rsb::protocol::NotificationPtr notification) = 0;
+        virtual void handleError(const std::exception& error) = 0;
     };
     typedef boost::shared_ptr<Handler> HandlerPtr;
 
@@ -87,8 +87,6 @@ public:
      */
     void setPruning(const bool& pruning);
 
-    void setErrorStrategy(ParticipantConfig::ErrorStrategy strategy);
-
 private:
 
     /**
@@ -100,15 +98,13 @@ private:
      */
     void notifyHandler(protocol::NotificationPtr notification);
 
-    rsc::logging::LoggerPtr          logger;
+    rsc::logging::LoggerPtr logger;
 
-    SpreadConnectionPtr              connection;
-    DeserializingHandler             messageHandler;
+    SpreadConnectionPtr     connection;
+    DeserializingHandler    messageHandler;
 
-    HandlerPtr                       handler;
-    boost::recursive_mutex           handlerMutex;
-
-    ParticipantConfig::ErrorStrategy errorStrategy;
+    HandlerPtr              handler;
+    boost::recursive_mutex  handlerMutex;
 };
 
 }

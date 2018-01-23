@@ -45,7 +45,7 @@ InConnector::InConnector(ConverterSelectionStrategyPtr converters,
     ConnectorBase(connection),
     logger(rsc::logging::Logger::getLogger("rsb.transport.spread.InConnector")),
     memberships(connection),
-    errorStrategy(ParticipantConfig::ERROR_STRATEGY_PRINT) {
+    errorStrategy(ParticipantConfig::ERROR_STRATEGY_LOG) {
 }
 
 InConnector::~InConnector() {}
@@ -83,7 +83,6 @@ void InConnector::setErrorStrategy(ParticipantConfig::ErrorStrategy strategy) {
 EventPtr InConnector::notificationToEvent(rsb::protocol::NotificationPtr notification) {
     EventPtr event(new Event());
 
-    // TODO fix error handling, see bug #796
     try {
         ConverterPtr converter = getConverter(notification->wire_schema());
         AnnotatedData deserialized
@@ -93,13 +92,34 @@ EventPtr InConnector::notificationToEvent(rsb::protocol::NotificationPtr notific
         fillEvent(event, *notification, deserialized.second, deserialized.first);
 
         event->mutableMetaData().setReceiveTime();
-    } catch (const std::exception& ex) {
-        RSCWARN(this->logger, "InConnector::notificationToEvent caught std exception: " << ex.what() );
-    } catch (...) {
-        RSCWARN(this->logger, "InConnector::notificationToEvent caught unknown exception" );
+    } catch (const std::exception& exception) {
+        handleError("deserializing notification", exception,
+                    "Continue with next notification", "Terminating");
     }
 
     return event;
+}
+
+void InConnector::handleError(const std::string&    context,
+                              const std::exception& exception,
+                              const std::string&    continueDescription,
+                              const std::string&    abortDescription) {
+    rsc::debug::DebugToolsPtr tools = rsc::debug::DebugTools::newInstance();
+    boost::format message
+        = (boost::format("Error %1%: %2%\n\n%3%\n")
+           % context % exception.what() % tools->exceptionInfo(exception));
+    switch (this->errorStrategy) {
+    case ParticipantConfig::ERROR_STRATEGY_LOG:
+        RSCERROR(this->logger, message << continueDescription);
+        break;
+    case ParticipantConfig::ERROR_STRATEGY_PRINT:
+        std::cerr << message << continueDescription << std::endl;
+        break;
+    case ParticipantConfig::ERROR_STRATEGY_EXIT:
+        RSCFATAL(this->logger, message << abortDescription);
+        exit(1);
+        break;
+    }
 }
 
 }
