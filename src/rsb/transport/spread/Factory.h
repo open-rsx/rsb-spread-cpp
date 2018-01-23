@@ -2,7 +2,7 @@
  *
  * This file is a part of the rsb-spread project.
  *
- * Copyright (C) 2015 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2015, 2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -26,11 +26,7 @@
 
 #pragma once
 
-#include <map>
-#include <string>
 #include <utility>
-
-#include <boost/thread/recursive_mutex.hpp>
 
 #include <rsc/runtime/Properties.h>
 
@@ -39,6 +35,7 @@
 #include <rsb/transport/OutConnector.h>
 
 #include "SpreadConnection.h"
+
 #include "rsb/transport/spread/rsbspreadexports.h"
 
 namespace rsb {
@@ -63,14 +60,8 @@ private:
 
     rsc::logging::LoggerPtr logger;
 
-    std::map<HostAndPort, SpreadConnectionPtr> outConnectionsByOptions;
-    boost::recursive_mutex outConnectionsMutex;
-
-    SpreadConnectionPtr getOutConnection(const HostAndPort& options);
-
     static HostAndPort parseOptions(const rsc::runtime::Properties& args);
 
-    template<class ConnectionType>
     static SpreadConnectionPtr createConnection(const HostAndPort& options);
 
 };
