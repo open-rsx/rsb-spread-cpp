@@ -139,7 +139,6 @@ void OutConnector::handle(EventPtr event) {
             = notification->fragments.back();
         fillNotificationId(*(fragmentNotification.mutable_notification()), event);
         if (fragment == 0) {
-            notification->notification = fragmentNotification.mutable_notification();
             fillNotificationHeader(*(fragmentNotification.mutable_notification()),
                                    event, wireSchema);
         }
@@ -162,6 +161,11 @@ void OutConnector::handle(EventPtr event) {
         fragmentNotification.set_num_data_parts(1);
     }
 
+    // We must apparently delay this until now since the pointer
+    // returned by mutable_notification() seems to be unstable while
+    // the fragment vector may still be extended.
+    notification->notification
+        = notification->fragments[0].mutable_notification();
     this->bus->handleOutgoingNotification(notification);
 }
 
