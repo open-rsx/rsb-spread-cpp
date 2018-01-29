@@ -41,6 +41,7 @@ InConnector::InConnector(ConverterSelectionStrategyPtr converters,
                          BusPtr                        bus) :
     ConverterSelectingConnector<std::string>(converters),
     ConnectorBase(bus),
+    logger(rsc::logging::Logger::getLogger("rsb.transport.spread.InConnector")),
     errorStrategy(ParticipantConfig::ERROR_STRATEGY_LOG) {
 }
 
