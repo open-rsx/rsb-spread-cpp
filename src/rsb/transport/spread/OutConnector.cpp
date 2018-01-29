@@ -131,7 +131,7 @@ void OutConnector::handle(EventPtr event) {
 
     for (unsigned int fragment = 0, offset = 0;
          (fragment == 0) || (offset < wire.size());
-         ++fragment, offset += this->maxFragmentSize) {
+         ++fragment) {
         // Allocate and populate a new fragment. When processing the
         // first fragment, transmit all meta data.
         notification->fragments.resize(fragment + 1);
@@ -153,11 +153,12 @@ void OutConnector::handle(EventPtr event) {
         }
         unsigned int maxDataPartSize = maxFragmentSize - headerByteSize;
 
-        string dataPart = wire.substr(offset, maxDataPartSize);
+        std::string dataPart = wire.substr(offset, maxDataPartSize);
         fragmentNotification.mutable_notification()->set_data(dataPart);
-        fragmentNotification.set_data_part(fragment);
+        offset += maxDataPartSize;
 
         // Optimistic guess for the number of required fragments.
+        fragmentNotification.set_data_part(fragment);
         fragmentNotification.set_num_data_parts(1);
     }
 
