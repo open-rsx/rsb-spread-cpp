@@ -39,6 +39,7 @@
 #include <rsb/transport/ConverterSelectingConnector.h>
 
 #include "ConnectorBase.h"
+#include "Notifications.h"
 #include "Bus.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
@@ -76,7 +77,7 @@ protected:
 
     ParticipantConfig::ErrorStrategy errorStrategy;
 
-    EventPtr notificationToEvent(rsb::protocol::Notification& notification);
+    EventPtr notificationToEvent(NotificationPtr& notification);
 
     virtual void handleError(const std::string&    context,
                              const std::exception& exception,

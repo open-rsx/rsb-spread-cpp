@@ -59,7 +59,7 @@ void InPushConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& /*spe
 }
 
 void InPushConnector::handleNotification(NotificationPtr notification) {
-    EventPtr event = notificationToEvent(*notification->notification);
+    EventPtr event = notificationToEvent(notification);
 
     if (event) {
         try {

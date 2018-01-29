@@ -75,16 +75,17 @@ void InConnector::setErrorStrategy(ParticipantConfig::ErrorStrategy strategy) {
     this->errorStrategy = strategy;
 }
 
-EventPtr InConnector::notificationToEvent(rsb::protocol::Notification& notification) {
+EventPtr InConnector::notificationToEvent(NotificationPtr& notification) {
     EventPtr event(new Event());
 
     try {
-        ConverterPtr converter = getConverter(notification.wire_schema());
+        ConverterPtr converter = getConverter(notification->wireSchema);
         AnnotatedData deserialized
-            = converter->deserialize(notification.wire_schema(),
-                                     notification.data());
+            = converter->deserialize(notification->wireSchema,
+                                     notification->serializedPayload);
 
-        fillEvent(event, notification, deserialized.second, deserialized.first);
+        fillEvent(event, *notification->notification,
+                  deserialized.second, deserialized.first);
 
         event->mutableMetaData().setReceiveTime();
     } catch (const std::exception& exception) {

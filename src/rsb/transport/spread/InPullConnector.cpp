@@ -64,7 +64,7 @@ EventPtr InPullConnector::raiseEvent(bool block) {
             continue;
         }
 
-        EventPtr event = notificationToEvent(*notification->notification);
+        EventPtr event = notificationToEvent(notification);
         if (!event) {
             continue;
         }
