@@ -61,12 +61,12 @@ execute_process(COMMAND ${GIT_EXECUTABLE}
                         --date=short
                 COMMAND gzip -n -9
                 OUTPUT_FILE "${CMAKE_BINARY_DIR}/changelog.gz")
-execute_process(COMMAND sh -c "for c in \$(${GIT_EXECUTABLE} rev-list --all -- \"${CMAKE_CURRENT_LIST_FILE}\") ; do \
-                                 if tag=\$(${GIT_EXECUTABLE} describe --tags \$c 2> /dev/null) ; then \
-                                   replacement=\$(echo $tag \
-                                     | sed -re s/[^0-9]*\\([0-9]+\\)\\.\\([0-9]+\\)-\\([0-9]+\\)-.*/\\\\1.\\$\\(\\(\\\\2+1\\)\\).\\\\3/) ; \
-                                   echo -n \"-e \\\"s/\$c/\$replacement/\\\" \" ; \
-                                 fi ; \
+execute_process(COMMAND sh -c "for c in \$(${GIT_EXECUTABLE} rev-list --all -- \"${CMAKE_CURRENT_LIST_FILE}\") ; do \\
+                                 if tag=\$(${GIT_EXECUTABLE} describe --tags \$c 2> /dev/null) ; then \\
+                                   replacement=\$(echo $tag \\
+                                     | sed -re s/[^0-9]*\\([0-9]+\\)\\.\\([0-9]+\\)-\\([0-9]+\\)-.*/\\\\1.\\$\\(\\(\\\\2+1\\)\\).\\\\3/) ; \\
+                                   echo -n \"-e \\\"s/\$c/\$replacement/\\\" \" ; \\
+                                 fi ; \\
                                done"
     OUTPUT_VARIABLE RULES)
 message(${RULES})
