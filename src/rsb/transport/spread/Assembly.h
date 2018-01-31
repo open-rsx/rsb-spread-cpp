@@ -2,7 +2,7 @@
  *
  * This file is part of the rsb-spread project.
  *
- * Copyright (C) 2011, 2012, 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2011-2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -28,8 +28,8 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
-#include <boost/cstdint.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
@@ -67,15 +67,15 @@ public:
     rsb::protocol::NotificationPtr getCompleteNotification() const;
 
     /**
-     * Adds a newly received fragment to this Assembly and tells whether this
+     * Adds a fragment to this Assembly and indicates whether this
      * completed the assembly.
      *
-     * @param n fragment to add
+     * @param fragment fragment to add
      * @return @c true if the assembly is now completed, else @c false
      * @throw protocol::ProtocolException if there is already a fragment in this
      *                                    Assembly with the same fragment number
      */
-    bool add(rsb::protocol::FragmentedNotificationPtr n);
+    bool add(rsb::protocol::FragmentedNotificationPtr fragment);
 
     bool isComplete() const;
 
@@ -88,11 +88,12 @@ public:
     unsigned int age() const;
 
 private:
-    rsc::logging::LoggerPtr logger;
-    unsigned int receivedParts;
-    std::vector<rsb::protocol::FragmentedNotificationPtr> store;
-    boost::posix_time::ptime birthTime;
+    rsc::logging::LoggerPtr                               logger;
 
+    unsigned int                                          receivedParts;
+    std::vector<rsb::protocol::FragmentedNotificationPtr> store;
+
+    boost::posix_time::ptime                              birthTime;
 };
 
 typedef boost::shared_ptr<Assembly> AssemblyPtr;
@@ -137,7 +138,7 @@ public:
      * @param prune if @c true, start pruning if it is not yet running, if
      *        @c false, disable pruning if active
      */
-    void setPruning(const bool& prune);
+    void setPruning(bool prune);
 
     /**
      * Adds a new notification to the pool and tries to join it with already
@@ -160,29 +161,32 @@ private:
     class PruningTask: public rsc::threading::PeriodicTask {
     public:
 
-        PruningTask(Pool& pool, boost::recursive_mutex& poolMutex,
-                const unsigned int& ageS,
-                const unsigned int& pruningIntervalMs);
+        PruningTask(Pool&                   pool,
+                    boost::recursive_mutex& poolMutex,
+                    const unsigned int&     ageS,
+                    const unsigned int&     pruningIntervalMs);
 
         void execute();
 
     private:
         rsc::logging::LoggerPtr logger;
-        Pool& pool;
+
+        Pool&                   pool;
         boost::recursive_mutex& poolMutex;
-        unsigned int maxAge;
+        unsigned int            maxAge;
     };
 
     rsc::logging::LoggerPtr logger;
-    Pool pool;
+
+    Pool                   pool;
     boost::recursive_mutex poolMutex;
 
     const unsigned int pruningAgeS;
     const unsigned int pruningIntervalMs;
 
     rsc::threading::ThreadedTaskExecutor executor;
-    mutable boost::recursive_mutex pruningMutex;
-    rsc::threading::TaskPtr pruningTask;
+    mutable boost::recursive_mutex       pruningMutex;
+    rsc::threading::TaskPtr              pruningTask;
 };
 
 typedef boost::shared_ptr<AssemblyPool> AssemblyPoolPtr;
