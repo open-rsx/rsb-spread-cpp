@@ -29,23 +29,15 @@
 
 #include <rsc/threading/ThreadedTaskExecutor.h>
 
-using namespace std;
-
-using namespace rsc::logging;
-using namespace rsc::runtime;
-using namespace rsc::threading;
-
-using namespace rsb::converter;
-
 namespace rsb {
 namespace transport {
 namespace spread {
 
 InPushConnector::InPushConnector(const ConverterSelectionStrategyPtr converters,
                                  BusPtr                              bus) :
-    transport::ConverterSelectingConnector<string>(converters),
+    transport::ConverterSelectingConnector<std::string>(converters),
     ConnectorBase(bus), InConnector(converters, bus),
-    logger(Logger::getLogger("rsb.transport.spread.InPushConnector")) {
+    logger(rsc::logging::Logger::getLogger("rsb.transport.spread.InPushConnector")) {
 }
 
 InPushConnector::~InPushConnector() {
