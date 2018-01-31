@@ -1,6 +1,6 @@
 # This file is part of the rsb-spread project.
 #
-# Copyright (C) 2013 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+# Copyright (C) 2013, 2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 #
 # This file may be licensed under the terms of the
 # GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -90,7 +90,7 @@ if(NOT SPREAD_EXECUTABLE)
 endif()
 
 # Protobuf
-# This is required because we are now reusing the protobuf-generated protocol
+# This is required because we are using the protobuf-generated protocol
 
 find_package(ProtocolBuffers REQUIRED)
 
