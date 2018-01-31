@@ -113,7 +113,8 @@ void AssemblyPool::PruningTask::execute() {
     while (it != this->pool.end()) {
         if (it->second->age() > maxAge) {
             RSCDEBUG(logger, "Pruning old assembly " << it->second);
-            this->pool.erase(it++);
+            Pool::iterator temp = it++;
+            this->pool.erase(temp); // FIXME returns next iterator in C++11
         } else {
             ++it;
         }
