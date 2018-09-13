@@ -22,17 +22,17 @@
 
 # Global CMake Settings
 
-cmake_minimum_required(VERSION 2.6)
-set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE)
+cmake_minimum_required(VERSION 3.0)
 
 # Global Project Settings
-
-project(rsb-spread)
 
 set(VERSION_MAJOR "0" CACHE STRING "Major project version part")
 set(VERSION_MINOR "18" CACHE STRING "Minor project version part")
 set(VERSION_SUFFIX "${VERSION_MAJOR}.${VERSION_MINOR}")
 set(SO_VERSION     "${VERSION_MAJOR}.${VERSION_MINOR}")
+
+project(rsb-spread VERSION "${VERSION_MAJOR}.${VERSION_MINOR}"
+                   LANGUAGES C CXX)
 
 set(RSBSPREAD_NAME rsbspread) # stem of shared object name
 
