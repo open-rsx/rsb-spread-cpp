@@ -27,7 +27,7 @@ cmake_minimum_required(VERSION 3.0)
 # Global Project Settings
 
 set(VERSION_MAJOR "0" CACHE STRING "Major project version part")
-set(VERSION_MINOR "18" CACHE STRING "Minor project version part")
+set(VERSION_MINOR "19" CACHE STRING "Minor project version part")
 set(VERSION_SUFFIX "${VERSION_MAJOR}.${VERSION_MINOR}")
 set(SO_VERSION     "${VERSION_MAJOR}.${VERSION_MINOR}")
 
