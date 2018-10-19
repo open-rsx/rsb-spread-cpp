@@ -41,11 +41,15 @@ InConnector::InConnector(ConverterSelectionStrategyPtr converters,
                          BusPtr                        bus) :
     ConverterSelectingConnector<std::string>(converters),
     ConnectorBase(bus),
-    errorStrategy(ParticipantConfig::ERROR_STRATEGY_LOG),
-    logger(rsc::logging::Logger::getLogger("rsb.transport.spread.InConnector")) {
+    logger(rsc::logging::Logger::getLogger("rsb.transport.spread.InConnector")),
+    errorStrategy(ParticipantConfig::ERROR_STRATEGY_LOG) {
 }
 
-InConnector::~InConnector() {}
+InConnector::~InConnector() {
+    if (this->active) {
+        deactivate();
+    }
+}
 
 void InConnector::activate() {
     ConnectorBase::activate();
@@ -71,8 +75,33 @@ void InConnector::setScope(const Scope& scope) {
     this->scope = scope;
 }
 
+void InConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& /*specs*/) {
+    // TODO ?->setPruning(specs.getReliability() < QualityOfServiceSpec::RELIABLE);
+}
+
 void InConnector::setErrorStrategy(ParticipantConfig::ErrorStrategy strategy) {
     this->errorStrategy = strategy;
+}
+
+void InConnector::handleNotification(NotificationPtr notification) {
+    EventPtr event = notificationToEvent(notification);
+
+    if (event) {
+        try {
+            for (std::list<eventprocessing::HandlerPtr>::iterator it = this->handlers.begin();
+                 it != this->handlers.end(); ++it) {
+                (*it)->handle(event);
+            }
+        } catch (const std::exception& exception) {
+            handleError("dispatching event to handlers", exception,
+                        "Continuing with next event", "Terminating");
+        }
+    }
+}
+
+void InConnector::handleError(const std::exception& error) {
+    handleError("receiving Spread message", error,
+                "Skipping message", "Terminating");
 }
 
 EventPtr InConnector::notificationToEvent(NotificationPtr& notification) {
@@ -96,11 +125,6 @@ EventPtr InConnector::notificationToEvent(NotificationPtr& notification) {
     return event;
 }
 
-void InConnector::handleError(const std::exception& error) {
-    handleError("receiving Spread message", error,
-                "Skipping message", "Terminating");
-}
-
 void InConnector::handleError(const std::string&    context,
                               const std::exception& exception,
                               const std::string&    continueDescription,
@@ -120,26 +144,6 @@ void InConnector::handleError(const std::string&    context,
         RSCFATAL(this->logger, message << abortDescription);
         exit(1);
         break;
-    }
-}
-
-void InConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& /*specs*/) {
-    // TODO ?->setPruning(specs.getReliability() < QualityOfServiceSpec::RELIABLE);
-}
-
-void InConnector::handleNotification(NotificationPtr notification) {
-    EventPtr event = notificationToEvent(notification);
-
-    if (event) {
-        try {
-            for (std::list<eventprocessing::HandlerPtr>::iterator it = this->handlers.begin();
-                 it != this->handlers.end(); ++it) {
-                (*it)->handle(event);
-            }
-        } catch (const std::exception& exception) {
-            handleError("dispatching event to handlers", exception,
-                        "Continuing with next event", "Terminating");
-        }
     }
 }
 

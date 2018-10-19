@@ -49,7 +49,7 @@ namespace transport {
 namespace spread {
 
 /**
- * Base class for in-direction connectors.
+ * Event receiving connector for the Spread-based transport.
  *
  * @author jmoringe
  */
@@ -62,31 +62,31 @@ public:
                 BusPtr                        bus);
     virtual ~InConnector();
 
-    virtual void activate();
-    virtual void deactivate();
+    void activate();
+    void deactivate();
 
-    virtual void setScope(const Scope& scope);
-
-    virtual void setErrorStrategy(ParticipantConfig::ErrorStrategy strategy);
-
-    virtual void handleError(const std::exception& error);
+    void setScope(const Scope& scope);
 
     void setQualityOfServiceSpecs(const QualityOfServiceSpec& specs);
 
+    void setErrorStrategy(ParticipantConfig::ErrorStrategy strategy);
+
     void handleNotification(NotificationPtr notification);
-protected:
-    Scope                            scope;
+
+    void handleError(const std::exception& error);
+ private:
+    rsc::logging::LoggerPtr logger;
+
+    Scope scope;
 
     ParticipantConfig::ErrorStrategy errorStrategy;
 
     EventPtr notificationToEvent(NotificationPtr& notification);
-private:
-    rsc::logging::LoggerPtr logger;
 
-    virtual void handleError(const std::string&    context,
-                             const std::exception& exception,
-                             const std::string&    continueDescription,
-                             const std::string&    abortDescription);
+    void handleError(const std::string&    context,
+                     const std::exception& exception,
+                     const std::string&    continueDescription,
+                     const std::string&    abortDescription);
 };
 
 }
