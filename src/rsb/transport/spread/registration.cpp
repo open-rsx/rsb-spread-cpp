@@ -51,20 +51,11 @@ void registerTransport() {
         options.insert("port");
 
         {
-            InPushFactory& connectorFactory = getInPushFactory();
+            InFactory& connectorFactory = getInFactory();
 
             connectorFactory.registerConnector
                 ("spread",
-                 boost::bind(&Factory::createInPushConnector, factory, _1),
-                 "spread", true, options);
-        }
-
-        {
-            InPullFactory& connectorFactory = getInPullFactory();
-
-            connectorFactory.registerConnector
-                ("spread",
-                 boost::bind(&Factory::createInPullConnector, factory, _1),
+                 boost::bind(&Factory::createInConnector, factory, _1),
                  "spread", true, options);
         }
 
@@ -85,13 +76,7 @@ void unregisterTransport() {
 
     /* TODO
     {
-        InPushFactory& connectorFactory = getInPushFactory();
-
-        connectorFactory.unregisterConnector("spread");
-    }
-
-    {
-        InPullFactory& connectorFactory = getInPullFactory();
+        InFactory& connectorFactory = getInFactory();
 
         connectorFactory.unregisterConnector("spread");
     }

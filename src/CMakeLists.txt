@@ -47,8 +47,6 @@ set(SOURCES rsb/Plugin.cpp
 
             rsb/transport/spread/ConnectorBase.cpp
             rsb/transport/spread/InConnector.cpp
-            rsb/transport/spread/InPushConnector.cpp
-            rsb/transport/spread/InPullConnector.cpp
             rsb/transport/spread/OutConnector.cpp
 
             rsb/transport/spread/Factory.cpp
@@ -68,8 +66,6 @@ set(HEADERS rsb/transport/spread/ErrorMessages.h
 
             rsb/transport/spread/ConnectorBase.h
             rsb/transport/spread/InConnector.h
-            rsb/transport/spread/InPushConnector.h
-            rsb/transport/spread/InPullConnector.h
             rsb/transport/spread/OutConnector.h
 
             rsb/transport/spread/Factory.h

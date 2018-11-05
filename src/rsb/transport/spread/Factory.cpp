@@ -28,8 +28,7 @@
 
 #include <rsb/converter/ConverterSelectionStrategy.h>
 
-#include "InPushConnector.h"
-#include "InPullConnector.h"
+#include "InConnector.h"
 #include "OutConnector.h"
 
 using namespace std;
@@ -82,20 +81,11 @@ Factory::HostAndPort Factory::parseOptions(const rsc::runtime::Properties& args)
                      args.getAs<unsigned int>("port", defaultPort()));
 }
 
-rsb::transport::InPushConnector*
-Factory::createInPushConnector(const rsc::runtime::Properties& args) {
-    RSCDEBUG(this->logger, "Creating InPushConnector with properties " << args);
+rsb::transport::InConnector*
+Factory::createInConnector(const rsc::runtime::Properties& args) {
+    RSCDEBUG(this->logger, "Creating InConnector with properties " << args);
 
-    return new InPushConnector(
-            args.get<ConverterSelectionStrategyPtr>("converters"),
-            obtainBus(parseOptions(args)));
-}
-
-rsb::transport::InPullConnector*
-Factory::createInPullConnector(const rsc::runtime::Properties& args) {
-    RSCDEBUG(this->logger, "Creating InPullConnector with properties " << args);
-
-    return new InPullConnector(
+    return new InConnector(
             args.get<ConverterSelectionStrategyPtr>("converters"),
             obtainBus(parseOptions(args)));
 }

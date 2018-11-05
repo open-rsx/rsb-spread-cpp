@@ -41,8 +41,8 @@ InConnector::InConnector(ConverterSelectionStrategyPtr converters,
                          BusPtr                        bus) :
     ConverterSelectingConnector<std::string>(converters),
     ConnectorBase(bus),
-    logger(rsc::logging::Logger::getLogger("rsb.transport.spread.InConnector")),
-    errorStrategy(ParticipantConfig::ERROR_STRATEGY_LOG) {
+    errorStrategy(ParticipantConfig::ERROR_STRATEGY_LOG),
+    logger(rsc::logging::Logger::getLogger("rsb.transport.spread.InConnector")) {
 }
 
 InConnector::~InConnector() {}
@@ -120,6 +120,26 @@ void InConnector::handleError(const std::string&    context,
         RSCFATAL(this->logger, message << abortDescription);
         exit(1);
         break;
+    }
+}
+
+void InConnector::setQualityOfServiceSpecs(const QualityOfServiceSpec& /*specs*/) {
+    // TODO ?->setPruning(specs.getReliability() < QualityOfServiceSpec::RELIABLE);
+}
+
+void InConnector::handleNotification(NotificationPtr notification) {
+    EventPtr event = notificationToEvent(notification);
+
+    if (event) {
+        try {
+            for (std::list<eventprocessing::HandlerPtr>::iterator it = this->handlers.begin();
+                 it != this->handlers.end(); ++it) {
+                (*it)->handle(event);
+            }
+        } catch (const std::exception& exception) {
+            handleError("dispatching event to handlers", exception,
+                        "Continuing with next event", "Terminating");
+        }
     }
 }
 

@@ -57,12 +57,10 @@ typedef boost::shared_ptr<Bus> BusPtr;
  * Manages and arbitrates one connection to a Spread daemon.
  *
  * One or more connectors for sending (@ref OutConnector) and/or
- * receiving notifications (@ref InPushConnector, @ref
- * InPullConnector) are associated to the bus. Notifications received
- * via the Spread connection as well as notifications send over the
- * Spread connection are distributed to all receiving connectors whose
- * scope is a super-scope of the scope of the notification in
- * question.
+ * receiving notifications (@ref InConnector) are associated to the bus.
+ * Notifications received via the Spread connection as well as notifications
+ * send over the Spread connection are distributed to all receiving connectors
+ * whose scope is a super-scope of the scope of the notification in question.
  *
  * @author jmoringe
  */

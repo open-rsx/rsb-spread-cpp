@@ -35,7 +35,7 @@
 
 #include <rsb/protocol/Notification.h>
 
-#include <rsb/transport/InPushConnector.h>
+#include <rsb/transport/InConnector.h>
 #include <rsb/transport/ConverterSelectingConnector.h>
 
 #include "ConnectorBase.h"
@@ -53,7 +53,7 @@ namespace spread {
  *
  * @author jmoringe
  */
-class RSBSPREAD_EXPORT InConnector : public virtual transport::InPushConnector,
+class RSBSPREAD_EXPORT InConnector : public virtual transport::InConnector,
                                      public virtual ConverterSelectingConnector<std::string>,
                                      public virtual ConnectorBase,
                                      public virtual Bus::Sink {
@@ -70,14 +70,18 @@ public:
     virtual void setErrorStrategy(ParticipantConfig::ErrorStrategy strategy);
 
     virtual void handleError(const std::exception& error);
-protected:
-    rsc::logging::LoggerPtr          logger;
 
+    void setQualityOfServiceSpecs(const QualityOfServiceSpec& specs);
+
+    void handleNotification(NotificationPtr notification);
+protected:
     Scope                            scope;
 
     ParticipantConfig::ErrorStrategy errorStrategy;
 
     EventPtr notificationToEvent(NotificationPtr& notification);
+private:
+    rsc::logging::LoggerPtr logger;
 
     virtual void handleError(const std::string&    context,
                              const std::exception& exception,

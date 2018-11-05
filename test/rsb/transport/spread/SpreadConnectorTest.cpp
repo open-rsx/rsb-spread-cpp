@@ -31,8 +31,7 @@
 #include "rsb/converter/Repository.h"
 
 #include <rsb/transport/spread/Bus.h>
-#include <rsb/transport/spread/InPullConnector.h>
-#include <rsb/transport/spread/InPushConnector.h>
+#include <rsb/transport/spread/InConnector.h>
 #include <rsb/transport/spread/OutConnector.h>
 
 #include "../ConnectorTest.h"
@@ -49,19 +48,10 @@ using namespace rsb::transport::spread;
 
 static int dummy = pullInConnectorTest();
 
-InPullConnectorPtr createSpreadInPullConnector() {
+InConnectorPtr createSpreadInConnector() {
     BusPtr bus(Bus::create(SpreadConnectionPtr(new SpreadConnection(defaultHost(), SPREAD_PORT))));
     bus->activate();
-    return InPullConnectorPtr(new rsb::transport::spread::InPullConnector
-                              (converterRepository<string>()
-                               ->getConvertersForDeserialization(),
-                               bus));
-}
-
-InPushConnectorPtr createSpreadInPushConnector() {
-    BusPtr bus(Bus::create(SpreadConnectionPtr(new SpreadConnection(defaultHost(), SPREAD_PORT))));
-    bus->activate();
-    return InPushConnectorPtr(new rsb::transport::spread::InPushConnector
+    return InConnectorPtr(new rsb::transport::spread::InConnector
                               (converterRepository<string>()
                                ->getConvertersForDeserialization(),
                                bus));
@@ -76,8 +66,7 @@ OutConnectorPtr createSpreadOutConnector() {
                             bus));
 }
 
-const ConnectorTestSetup spreadSetup(createSpreadInPullConnector,
-                                     createSpreadInPushConnector,
+const ConnectorTestSetup spreadSetup(createSpreadInConnector,
                                      createSpreadOutConnector);
 
 INSTANTIATE_TEST_CASE_P(SpreadConnector,
