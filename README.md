@@ -2,6 +2,8 @@
 
 This repository contains the C++ implementation of the [Spread](https://www.spread.org)-based transport for the [Robotics Service Bus](https://github.com/open-rsx) middleware.
 
+**The full documentation for RSB can be found at <https://docs.cor-lab.de/manual/rsb-trunk/index.html>.**
+
 # Dependencies #
 
 - [CMake](https://cmake.org/) build systen
