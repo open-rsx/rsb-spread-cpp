@@ -4,6 +4,8 @@ This repository contains the C++ implementation of the [Spread](https://www.spre
 
 **The full documentation for RSB can be found at <https://docs.cor-lab.de/manual/rsb-trunk/index.html>.**
 
+**This product uses software developed by Spread Concepts LLC for use in the Spread toolkit. For more information about Spread see <http://www.spread.org>.**
+
 # Dependencies #
 
 - [CMake](https://cmake.org/) build systen
