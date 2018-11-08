@@ -3,7 +3,7 @@
  * This file is a part of the RSB project
  *
  * Copyright (C) 2011 by Johannes Wienke <jwienke at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2012 Jan Moringen <jmoringe@techfak.uni-bielfeld.de>
+ * Copyright (C) 2012, 2018 Jan Moringen <jmoringe@techfak.uni-bielfeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -32,6 +32,7 @@
 
 #include "rsb/transport/InConnector.h"
 #include "rsb/transport/OutConnector.h"
+#include "rsb/transport/spread/Bus.h"
 
 /**
  * Test configuration for different connector types.
@@ -41,13 +42,27 @@
 class ConnectorTestSetup {
 public:
     ConnectorTestSetup(
-            boost::function<rsb::transport::InConnectorPtr()> createInConnector,
-            boost::function<rsb::transport::OutConnectorPtr()> createOutConnector) :
-        createInConnector(createInConnector),
-        createOutConnector(createOutConnector) {
+            boost::function<rsb::transport::InConnectorPtr()>
+                    createConnectingInConnector,
+            boost::function<rsb::transport::OutConnectorPtr()>
+                    createConnectingOutConnector,
+            boost::function<rsb::transport::InConnectorPtr(rsb::transport::spread::BusPtr)>
+                    createInConnectorWithBus,
+            boost::function<rsb::transport::OutConnectorPtr(rsb::transport::spread::BusPtr)>
+                    createOutConnectorWithBus) :
+        createConnectingInConnector(createConnectingInConnector),
+        createConnectingOutConnector(createConnectingOutConnector),
+        createInConnectorWithBus(createInConnectorWithBus),
+        createOutConnectorWithBus(createOutConnectorWithBus){
     }
-    boost::function<rsb::transport::InConnectorPtr()> createInConnector;
-    boost::function<rsb::transport::OutConnectorPtr()> createOutConnector;
+    boost::function<rsb::transport::InConnectorPtr()>
+            createConnectingInConnector;
+    boost::function<rsb::transport::OutConnectorPtr()>
+            createConnectingOutConnector;
+    boost::function<rsb::transport::InConnectorPtr(rsb::transport::spread::BusPtr)>
+            createInConnectorWithBus;
+    boost::function<rsb::transport::OutConnectorPtr(rsb::transport::spread::BusPtr)>
+            createOutConnectorWithBus;
 };
 
 /**
