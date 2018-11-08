@@ -44,6 +44,7 @@ set(SOURCES rsb/Plugin.cpp
             rsb/transport/spread/DeserializingHandler.cpp
             rsb/transport/spread/ReceiverTask.cpp
             rsb/transport/spread/Bus.cpp
+            rsb/transport/spread/BusImpl.cpp
 
             rsb/transport/spread/ConnectorBase.cpp
             rsb/transport/spread/InConnector.cpp
@@ -63,6 +64,7 @@ set(HEADERS rsb/transport/spread/ErrorMessages.h
             rsb/transport/spread/DeserializingHandler.h
             rsb/transport/spread/ReceiverTask.h
             rsb/transport/spread/Bus.h
+            rsb/transport/spread/BusImpl.h
 
             rsb/transport/spread/ConnectorBase.h
             rsb/transport/spread/InConnector.h

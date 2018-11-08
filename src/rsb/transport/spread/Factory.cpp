@@ -30,6 +30,7 @@
 
 #include "InConnector.h"
 #include "OutConnector.h"
+#include "BusImpl.h"
 
 using namespace std;
 
@@ -68,7 +69,7 @@ BusPtr Factory::obtainBus(const HostAndPort& options) {
         // instance was dead, create a new one and store a weak
         // pointer in the map.
         SpreadConnectionPtr connection(new SpreadConnection(options.first, options.second));
-        BusPtr bus = Bus::create(connection);
+        BusPtr bus = BusImpl::create(connection);
         RSCDEBUG(this->logger, (boost::format("Created new %1%") % bus));
         bus->activate();
         this->buses[options] = bus;

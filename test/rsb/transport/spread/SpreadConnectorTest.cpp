@@ -30,7 +30,7 @@
 
 #include "rsb/converter/Repository.h"
 
-#include <rsb/transport/spread/Bus.h>
+#include <rsb/transport/spread/BusImpl.h>
 #include <rsb/transport/spread/InConnector.h>
 #include <rsb/transport/spread/OutConnector.h>
 
@@ -49,7 +49,7 @@ using namespace rsb::transport::spread;
 static int dummy = pullInConnectorTest();
 
 InConnectorPtr createSpreadInConnector() {
-    BusPtr bus(Bus::create(SpreadConnectionPtr(new SpreadConnection(defaultHost(), SPREAD_PORT))));
+    BusPtr bus(BusImpl::create(SpreadConnectionPtr(new SpreadConnection(defaultHost(), SPREAD_PORT))));
     bus->activate();
     return InConnectorPtr(new rsb::transport::spread::InConnector
                               (converterRepository<string>()
@@ -58,7 +58,7 @@ InConnectorPtr createSpreadInConnector() {
 }
 
 OutConnectorPtr createSpreadOutConnector() {
-    BusPtr bus(Bus::create(SpreadConnectionPtr(new SpreadConnection(defaultHost(), SPREAD_PORT))));
+    BusPtr bus(BusImpl::create(SpreadConnectionPtr(new SpreadConnection(defaultHost(), SPREAD_PORT))));
     bus->activate();
     return OutConnectorPtr(new rsb::transport::spread::OutConnector
                            (converterRepository<string>()
