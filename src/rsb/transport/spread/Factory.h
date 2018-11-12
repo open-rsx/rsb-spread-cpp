@@ -35,8 +35,7 @@
 
 #include <rsc/runtime/Properties.h>
 
-#include <rsb/transport/InPushConnector.h>
-#include <rsb/transport/InPullConnector.h>
+#include <rsb/transport/InConnector.h>
 #include <rsb/transport/OutConnector.h>
 
 #include "Bus.h"
@@ -51,11 +50,8 @@ class RSBSPREAD_EXPORT Factory {
 public:
     Factory();
 
-    rsb::transport::InPushConnector*
-    createInPushConnector(const rsc::runtime::Properties& args);
-
-    rsb::transport::InPullConnector*
-    createInPullConnector(const rsc::runtime::Properties& args);
+    rsb::transport::InConnector*
+    createInConnector(const rsc::runtime::Properties& args);
 
     rsb::transport::OutConnector*
     createOutConnector(const rsc::runtime::Properties& args);

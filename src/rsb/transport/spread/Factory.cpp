@@ -28,9 +28,9 @@
 
 #include <rsb/converter/ConverterSelectionStrategy.h>
 
-#include "InPushConnector.h"
-#include "InPullConnector.h"
+#include "InConnector.h"
 #include "OutConnector.h"
+#include "BusImpl.h"
 
 using namespace std;
 
@@ -69,7 +69,7 @@ BusPtr Factory::obtainBus(const HostAndPort& options) {
         // instance was dead, create a new one and store a weak
         // pointer in the map.
         SpreadConnectionPtr connection(new SpreadConnection(options.first, options.second));
-        BusPtr bus = Bus::create(connection);
+        BusPtr bus = BusImpl::create(connection);
         RSCDEBUG(this->logger, (boost::format("Created new %1%") % bus));
         bus->activate();
         this->buses[options] = bus;
@@ -82,20 +82,11 @@ Factory::HostAndPort Factory::parseOptions(const rsc::runtime::Properties& args)
                      args.getAs<unsigned int>("port", defaultPort()));
 }
 
-rsb::transport::InPushConnector*
-Factory::createInPushConnector(const rsc::runtime::Properties& args) {
-    RSCDEBUG(this->logger, "Creating InPushConnector with properties " << args);
+rsb::transport::InConnector*
+Factory::createInConnector(const rsc::runtime::Properties& args) {
+    RSCDEBUG(this->logger, "Creating InConnector with properties " << args);
 
-    return new InPushConnector(
-            args.get<ConverterSelectionStrategyPtr>("converters"),
-            obtainBus(parseOptions(args)));
-}
-
-rsb::transport::InPullConnector*
-Factory::createInPullConnector(const rsc::runtime::Properties& args) {
-    RSCDEBUG(this->logger, "Creating InPullConnector with properties " << args);
-
-    return new InPullConnector(
+    return new InConnector(
             args.get<ConverterSelectionStrategyPtr>("converters"),
             obtainBus(parseOptions(args)));
 }

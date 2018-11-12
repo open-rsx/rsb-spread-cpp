@@ -27,21 +27,7 @@
 #pragma once
 
 #include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
 
-#include <boost/thread/mutex.hpp>
-
-#include <rsc/runtime/Printable.h>
-
-#include <rsc/threading/TaskExecutor.h>
-
-#include <rsb/Event.h>
-
-#include <rsb/eventprocessing/ScopeDispatcher.h>
-
-#include "Notifications.h"
-#include "SpreadConnection.h"
-#include "MembershipManager.h"
 #include "ReceiverTask.h"
 
 #include "rsb/transport/spread/rsbspreadexports.h"
@@ -57,18 +43,14 @@ typedef boost::shared_ptr<Bus> BusPtr;
  * Manages and arbitrates one connection to a Spread daemon.
  *
  * One or more connectors for sending (@ref OutConnector) and/or
- * receiving notifications (@ref InPushConnector, @ref
- * InPullConnector) are associated to the bus. Notifications received
- * via the Spread connection as well as notifications send over the
- * Spread connection are distributed to all receiving connectors whose
- * scope is a super-scope of the scope of the notification in
- * question.
+ * receiving notifications (@ref InConnector) are associated to the bus.
+ * Notifications received via the Spread connection as well as notifications
+ * send over the Spread connection are distributed to all receiving connectors
+ * whose scope is a super-scope of the scope of the notification in question.
  *
  * @author jmoringe
  */
-class RSBSPREAD_EXPORT Bus : public ReceiverTask::Handler,
-                             public rsc::runtime::Printable,
-                             public boost::enable_shared_from_this<Bus> {
+class RSBSPREAD_EXPORT Bus : public ReceiverTask::Handler {
 public:
     class Sink {
     public:
@@ -79,47 +61,17 @@ public:
 
     typedef boost::shared_ptr<Sink> SinkPtr;
 
-    // Since this class uses shared_from_this, there better be no way
-    // of obtaining an instance that is not owned by a shared_ptr.
-    static BusPtr create(SpreadConnectionPtr connection);
     virtual ~Bus();
 
-    void printContents(std::ostream& stream) const ;
+    virtual const std::string getTransportURL() const = 0;
 
-    const std::string getTransportURL() const;
+    virtual void activate() = 0;
+    virtual void deactivate() = 0;
 
-    void activate();
-    void deactivate();
+    virtual void addSink(const Scope& scope, SinkPtr sink) = 0;
+    virtual void removeSink(const Scope& scope, const Sink* sink) = 0;
 
-    void addSink(const Scope& scope, SinkPtr sink);
-    void removeSink(const Scope& scope, const Sink* sink);
-
-    void handleOutgoingNotification(OutgoingNotificationPtr notification);
-    void handleIncomingNotification(IncomingNotificationPtr notification);
-    void handleError(const std::exception& error);
-private:
-    typedef eventprocessing::WeakScopeDispatcher<Sink> ScopeDispatcher;
-
-    rsc::logging::LoggerPtr         logger;
-
-    bool                            active;
-
-    // Connection and Spread group membership
-    SpreadConnectionPtr             connection;
-
-    MembershipManager               memberships;
-
-    // Receiving and dispatching
-    rsc::threading::TaskExecutorPtr executor;
-    boost::shared_ptr<ReceiverTask> receiver;
-
-    ScopeDispatcher                 scopeDispatcher;
-
-    boost::mutex                    sinkMutex;
-
-    Bus(SpreadConnectionPtr connection);
-
-    void sendNotification(OutgoingNotificationPtr notification);
+    virtual void handleOutgoingNotification(OutgoingNotificationPtr notification) = 0;
 };
 
 }

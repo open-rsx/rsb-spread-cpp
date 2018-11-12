@@ -66,19 +66,72 @@ int pullInConnectorTest() {
     return 0;
 }
 
-TEST_P(ConnectorTest, testConstruction) {
+class MockBus : public rsb::transport::spread::Bus {
+public:
+    MockBus() {};
+
+    MOCK_CONST_METHOD0(getTransportURL, const std::string());
+
+    MOCK_METHOD0(activate, void());
+    MOCK_METHOD0(deactivate, void());
+
+    MOCK_METHOD2(addSink,
+                 void(const rsb::Scope& scope,
+                      rsb::transport::spread::Bus::SinkPtr sink));
+    MOCK_METHOD2(removeSink,
+                 void(const rsb::Scope& scope,
+                      const rsb::transport::spread::Bus::Sink* sink));
+
+    MOCK_METHOD1(handleIncomingNotification,
+                 void(rsb::transport::spread::IncomingNotificationPtr
+                      notification));
+    MOCK_METHOD1(handleOutgoingNotification,
+                 void(rsb::transport::spread::OutgoingNotificationPtr
+                      notification));
+    MOCK_METHOD1(handleError, void(const std::exception& error));
+};
+
+TEST_P(ConnectorTest, testIsolatedConstruction) {
     rsb::getFactory();
+
     {
-        InPullConnectorPtr connector;
-        ASSERT_NO_THROW(connector = GetParam().createInPullConnector());
+        boost::shared_ptr<MockBus> bus(new MockBus());
+        EXPECT_CALL(*bus, addSink(rsb::Scope("/foo"), _)).Times(1);
+        EXPECT_CALL(*bus, removeSink(rsb::Scope("/foo"), _)).Times(1);
+        {
+            InConnectorPtr connector;
+            ASSERT_NO_THROW(connector
+                            = GetParam().createInConnectorWithBus(bus));
+            connector->setScope("/foo");
+            connector->activate();
+        }
     }
+
     {
-        InPushConnectorPtr connector;
-        ASSERT_NO_THROW(connector = GetParam().createInPushConnector());
+        boost::shared_ptr<MockBus> bus(new MockBus());
+        EXPECT_CALL(*bus, addSink(_, _)).Times(0);
+        EXPECT_CALL(*bus, removeSink(_, _)).Times(0);
+        {
+            OutConnectorPtr connector;
+            ASSERT_NO_THROW(connector
+                            = GetParam().createOutConnectorWithBus(bus));
+            connector->activate();
+        }
     }
+}
+
+
+TEST_P(ConnectorTest, testConnectingConstruction) {
+    rsb::getFactory();
+
+    {
+        InConnectorPtr connector;
+        ASSERT_NO_THROW(connector = GetParam().createConnectingInConnector());
+    }
+
     {
         OutConnectorPtr connector;
-        ASSERT_NO_THROW(connector = GetParam().createOutConnector());
+        ASSERT_NO_THROW(connector = GetParam().createConnectingOutConnector());
     }
 }
 
@@ -86,16 +139,8 @@ TEST_P(ConnectorTest, testConnection) {
     rsb::getFactory();
 
     {
-        InPullConnectorPtr connector;
-        ASSERT_NO_THROW(connector = GetParam().createInPullConnector());
-        connector->setScope("/foo");
-        ASSERT_NO_THROW(connector->activate());
-        ASSERT_NO_THROW(connector->deactivate());
-    }
-
-    {
-        InPushConnectorPtr connector;
-        ASSERT_NO_THROW(connector = GetParam().createInPushConnector());
+        InConnectorPtr connector;
+        ASSERT_NO_THROW(connector = GetParam().createConnectingInConnector());
         connector->setScope("/foo");
         ASSERT_NO_THROW(connector->activate());
         ASSERT_NO_THROW(connector->deactivate());
@@ -103,7 +148,7 @@ TEST_P(ConnectorTest, testConnection) {
 
     {
         OutConnectorPtr connector;
-        ASSERT_NO_THROW(connector = GetParam().createOutConnector());
+        ASSERT_NO_THROW(connector = GetParam().createConnectingOutConnector());
         ASSERT_NO_THROW(connector->activate());
         ASSERT_NO_THROW(connector->deactivate());
     }
@@ -111,7 +156,7 @@ TEST_P(ConnectorTest, testConnection) {
 
 TEST_P(ConnectorTest, testSendLongGroupNames) {
 
-    OutConnectorPtr out = GetParam().createOutConnector();
+    OutConnectorPtr out = GetParam().createConnectingOutConnector();
     out->activate();
 
     Scope longScope(
@@ -129,7 +174,7 @@ TEST_P(ConnectorTest, testSendLongGroupNames) {
 
 TEST_P(ConnectorTest, testSetSendTime) {
 
-    OutConnectorPtr out = GetParam().createOutConnector();
+    OutConnectorPtr out = GetParam().createConnectingOutConnector();
     out->activate();
 
     EventPtr e(new Event());
@@ -158,7 +203,7 @@ TEST_P(ConnectorTest, testHierarchySending) {
     QualityOfServiceSpec qosSpecs(QualityOfServiceSpec::ORDERED,
             QualityOfServiceSpec::RELIABLE);
 
-    OutConnectorPtr out = GetParam().createOutConnector();
+    OutConnectorPtr out = GetParam().createConnectingOutConnector();
     out->setQualityOfServiceSpecs(qosSpecs);
     out->activate();
     vector<boost::shared_ptr<WaitingObserver> > observers;
@@ -171,7 +216,7 @@ TEST_P(ConnectorTest, testHierarchySending) {
         Scope receiveScope = *receiveScopeIt;
 
         // in connector
-        InPushConnectorPtr in = GetParam().createInPushConnector();
+        InConnectorPtr in = GetParam().createConnectingInConnector();
         in->setQualityOfServiceSpecs(qosSpecs);
         in->setScope(receiveScope);
         in->activate();
@@ -245,12 +290,12 @@ TEST_P(ConnectorTest, testRoundtripDynamicScopes) {
     QualityOfServiceSpec qosSpecs(QualityOfServiceSpec::ORDERED,
             QualityOfServiceSpec::RELIABLE);
 
-    OutConnectorPtr out = GetParam().createOutConnector();
+    OutConnectorPtr out = GetParam().createConnectingOutConnector();
     out->setQualityOfServiceSpecs(qosSpecs);
     ASSERT_NO_THROW(out->activate());
 
     // in connector
-    InPushConnectorPtr in = GetParam().createInPushConnector();
+    InConnectorPtr in = GetParam().createConnectingInConnector();
     in->setQualityOfServiceSpecs(qosSpecs);
     in->setScope(Scope("/"));
     ASSERT_NO_THROW(in->activate());
@@ -302,11 +347,11 @@ TEST_P(ConnectorTest, testRoundtrip) {
             sizeIt != sizes.end(); ++sizeIt) {
 
         // in connector
-        InPushConnectorPtr in = GetParam().createInPushConnector();
+        InConnectorPtr in = GetParam().createConnectingInConnector();
         in->setQualityOfServiceSpecs(qosSpecs);
         in->setScope(scope);
         ASSERT_NO_THROW(in->activate());
-        OutConnectorPtr out = GetParam().createOutConnector();
+        OutConnectorPtr out = GetParam().createConnectingOutConnector();
         out->setQualityOfServiceSpecs(qosSpecs);
         ASSERT_NO_THROW(out->activate());
 

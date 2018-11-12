@@ -30,9 +30,8 @@
 
 #include "rsb/converter/Repository.h"
 
-#include <rsb/transport/spread/Bus.h>
-#include <rsb/transport/spread/InPullConnector.h>
-#include <rsb/transport/spread/InPushConnector.h>
+#include <rsb/transport/spread/BusImpl.h>
+#include <rsb/transport/spread/InConnector.h>
 #include <rsb/transport/spread/OutConnector.h>
 
 #include "../ConnectorTest.h"
@@ -49,26 +48,22 @@ using namespace rsb::transport::spread;
 
 static int dummy = pullInConnectorTest();
 
-InPullConnectorPtr createSpreadInPullConnector() {
-    BusPtr bus(Bus::create(SpreadConnectionPtr(new SpreadConnection(defaultHost(), SPREAD_PORT))));
+// Creates and returns an InConnector that uses a Bus which connects
+// to a real Spread daemon.
+InConnectorPtr createConnectingInConnector() {
+    BusPtr bus(BusImpl::create(SpreadConnectionPtr(new SpreadConnection(
+            defaultHost(), SPREAD_PORT))));
     bus->activate();
-    return InPullConnectorPtr(new rsb::transport::spread::InPullConnector
+    return InConnectorPtr(new rsb::transport::spread::InConnector
                               (converterRepository<string>()
                                ->getConvertersForDeserialization(),
                                bus));
 }
 
-InPushConnectorPtr createSpreadInPushConnector() {
-    BusPtr bus(Bus::create(SpreadConnectionPtr(new SpreadConnection(defaultHost(), SPREAD_PORT))));
-    bus->activate();
-    return InPushConnectorPtr(new rsb::transport::spread::InPushConnector
-                              (converterRepository<string>()
-                               ->getConvertersForDeserialization(),
-                               bus));
-}
-
-OutConnectorPtr createSpreadOutConnector() {
-    BusPtr bus(Bus::create(SpreadConnectionPtr(new SpreadConnection(defaultHost(), SPREAD_PORT))));
+// Like createConnectingInConnector but creates an OutConnector.
+OutConnectorPtr createConnectingOutConnector() {
+    BusPtr bus(BusImpl::create(SpreadConnectionPtr(new SpreadConnection(
+            defaultHost(), SPREAD_PORT))));
     bus->activate();
     return OutConnectorPtr(new rsb::transport::spread::OutConnector
                            (converterRepository<string>()
@@ -76,9 +71,28 @@ OutConnectorPtr createSpreadOutConnector() {
                             bus));
 }
 
-const ConnectorTestSetup spreadSetup(createSpreadInPullConnector,
-                                     createSpreadInPushConnector,
-                                     createSpreadOutConnector);
+// Creates and returns an InConnector that uses a given Bus (which
+// will typically be a mock object.)
+InConnectorPtr createInConnectorWithBus(BusPtr bus) {
+    return InConnectorPtr(new rsb::transport::spread::InConnector
+                          (converterRepository<string>()
+                           ->getConvertersForDeserialization(),
+                           bus));
+}
+
+// Like createInConnectorWithBus but creates an OutConnector.
+OutConnectorPtr createOutConnectorWithBus(BusPtr bus) {
+    return OutConnectorPtr(new rsb::transport::spread::OutConnector
+                           (converterRepository<string>()
+                            ->getConvertersForSerialization(),
+                            bus));
+}
+
+const
+ConnectorTestSetup spreadSetup(createConnectingInConnector,
+                               createConnectingOutConnector,
+                               createInConnectorWithBus,
+                               createOutConnectorWithBus);
 
 INSTANTIATE_TEST_CASE_P(SpreadConnector,
         ConnectorTest,
