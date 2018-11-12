@@ -28,13 +28,13 @@ make test       # opt. run unit tests
 make install    # install
 ```
 
-<!-- To generate a coverage report chose `coverage` as CMake build type and do -->
-<!--  -->
-<!-- ```sh -->
-<!-- make -->
-<!-- make test -->
-<!-- make coverage -->
-<!-- ``` -->
+To generate a coverage report chose `coverage` as CMake build type and do
+
+```sh
+make
+make test
+make coverage
+```
 
 # Contributing
 
