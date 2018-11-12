@@ -61,6 +61,7 @@ include(DefineProjectVersion)
 include(CurrentDate)
 include(PedanticCompilerWarnings)
 include(InstallFilesRecursive)
+include(EnableCoverageReport)
 
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_LIBS OFF)
@@ -123,6 +124,12 @@ if(BUILD_TESTS)
         message(WARNING "Could not build unit tests (as requested) because Google Mock could not be installed.")
     endif()
 endif()
+
+# coverage report
+
+enable_coverage_report(TARGETS ${RSBSPREAD_NAME}
+                       TESTS ${TEST_NAME}
+                       FILTER "*coverage/*" "*/test*")
 
 # pkgconfig file
 
