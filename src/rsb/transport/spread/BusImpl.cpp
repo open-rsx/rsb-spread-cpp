@@ -54,6 +54,9 @@ public:
         bus(bus) {
     }
 
+    virtual ~WeakHandlerAdapter() {
+    }
+
     void handleIncomingNotification(IncomingNotificationPtr notification) {
         BusPtr bus = this->bus.lock();
         if (bus) {
