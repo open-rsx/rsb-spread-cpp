@@ -19,6 +19,7 @@ before_script:
   - cd ..
 script:
   - mkdir -p build && cd build
+  - export CXXFLAGS="-Werror"
   - cmake -DCMAKE_INSTALL_PREFIX=/rsb-spread-cpp -DCMAKE_PREFIX_PATH="$(pwd)/../upstream/rsc;$(pwd)/../upstream/rsb-cpp" -DCMAKE_BUILD_TYPE=coverage ..
   - make -j3
   - make test
