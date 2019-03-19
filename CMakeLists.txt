@@ -1,6 +1,6 @@
 # This file is part of the rsb-spread project.
 #
-# Copyright (C) 2013, 2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+# Copyright (C) 2013-2019 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 #
 # This file may be licensed under the terms of the
 # GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -22,7 +22,7 @@
 
 # Global CMake Settings
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 
 # Global Project Settings
 
@@ -33,6 +33,7 @@ set(SO_VERSION     "${VERSION_MAJOR}.${VERSION_MINOR}")
 
 project(rsb-spread VERSION "${VERSION_MAJOR}.${VERSION_MINOR}"
                    LANGUAGES C CXX)
+set(CMAKE_CXX_STANDARD 11)
 
 set(RSBSPREAD_NAME rsbspread) # stem of shared object name
 

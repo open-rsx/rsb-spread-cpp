@@ -10,7 +10,8 @@ This repository contains the C++ implementation of the [Spread][spread]-based tr
 
 # Dependencies
 
-* [CMake][cmake] build system
+* A C++11 compiler
+* [CMake][cmake] build system, version 3.1 or newer
 * [Boost C++ libraries][boost]
 * [The RSC C++ library][rsc]
 * [The C++ implementation of RSB][rsb-cpp]
