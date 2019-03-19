@@ -2,7 +2,7 @@
  *
  * This file is part of the rsb-spread project.
  *
- * Copyright (C) 2018 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2018, 2019 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This file may be licensed under the terms of the
  * GNU Lesser General Public License Version 3 (the ``LGPL''),
@@ -163,21 +163,6 @@ void BusImpl::removeSink(const Scope& scope, const Sink* sink) {
     }
 }
 
-namespace {
-
-struct PoorPersonsLambda1 {
-    OutgoingNotificationPtr notification;
-
-    PoorPersonsLambda1(OutgoingNotificationPtr notification) :
-        notification(notification) {}
-
-    void operator()(BusImpl::Sink& sink) {
-        sink.handleNotification(this->notification);
-    }
-};
-
-}
-
 void BusImpl::handleOutgoingNotification(OutgoingNotificationPtr notification) {
     RSCTRACE(this->logger, (boost::format("Bus %1% is handling outgoing "
                                           "notification %2%, scope = %3%")
@@ -188,24 +173,12 @@ void BusImpl::handleOutgoingNotification(OutgoingNotificationPtr notification) {
     {
         boost::mutex::scoped_lock lock(this->sinkMutex);
 
-        this->scopeDispatcher.mapSinks(notification->scope,
-                                       PoorPersonsLambda1(notification));
+        this->scopeDispatcher.mapSinks(
+            notification->scope,
+            [&notification](BusImpl::Sink& sink){
+                sink.handleNotification(notification);
+            });
     }
-}
-
-namespace {
-
-struct PoorPersonsLambda2 {
-    IncomingNotificationPtr notification;
-
-    PoorPersonsLambda2(IncomingNotificationPtr notification) :
-        notification(notification) {}
-
-    void operator()(BusImpl::Sink& sink) {
-        sink.handleNotification(this->notification);
-    }
-};
-
 }
 
 void BusImpl::handleIncomingNotification(IncomingNotificationPtr notification) {
@@ -216,30 +189,19 @@ void BusImpl::handleIncomingNotification(IncomingNotificationPtr notification) {
     {
         boost::mutex::scoped_lock lock(this->sinkMutex);
 
-        this->scopeDispatcher.mapSinks(notification->scope,
-                                       PoorPersonsLambda2(notification));
+        this->scopeDispatcher.mapSinks(
+            notification->scope,
+            [&notification](BusImpl::Sink& sink){
+                sink.handleNotification(notification);
+            });
     }
-}
-
-namespace {
-
-struct PoorPersonsLambda3 {
-    const std::exception& exception;
-
-    PoorPersonsLambda3(const std::exception& exception) :
-        exception(exception) {}
-
-    void operator()(BusImpl::Sink& sink) {
-        sink.handleError(this->exception);
-    }
-};
-
 }
 
 void BusImpl::handleError(const std::exception& error) {
     boost::mutex::scoped_lock lock(this->sinkMutex);
 
-    this->scopeDispatcher.mapAllSinks(PoorPersonsLambda3(error));
+    this->scopeDispatcher.mapAllSinks(
+        [&error](BusImpl::Sink& sink){ sink.handleError(error); });
 }
 
 ///
